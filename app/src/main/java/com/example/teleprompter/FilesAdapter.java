@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.example.teleprompter.data.File;
+import com.example.teleprompter.database.File;
 
 import java.util.List;
 
@@ -48,8 +48,11 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FileViewHold
         return mFilesList != null ? mFilesList.size() : 0;
     }
 
-    public interface ListItemOnClickListener {
-        void onListItemClick(int position);
+    public void setFilesList(List<File> filesList) {
+        if (mFilesList != filesList) {
+            mFilesList = filesList;
+            notifyDataSetChanged();
+        }
     }
 
     class FileViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -71,4 +74,9 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FileViewHold
             mItemClickListener.onListItemClick(getAdapterPosition());
         }
     }
+
+    public interface ListItemOnClickListener {
+        void onListItemClick(int position);
+    }
+
 }
