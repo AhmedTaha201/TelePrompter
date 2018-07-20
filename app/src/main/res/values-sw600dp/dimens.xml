@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="padding_recycler_main_16dp">16dp</dimen>
+    <dimen name="margin_fab_main_32dp">32dp</dimen>
+    <dimen name="recycler_item_main_margin_16dp">16dp</dimen>
+    <dimen name="padding_main_tv_4dp">4dp</dimen>
+    <dimen name="card_radius_main_4dp">4dp</dimen>
+    <integer name="recycler_item_count">3</integer>
+</resources>

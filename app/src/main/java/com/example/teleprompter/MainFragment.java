@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,7 +35,8 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
         ButterKnife.bind(this, view);
 
         mAdapter = new FilesAdapter(getActivity(), null, this);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        int spanCount = getActivity().getResources().getInteger(R.integer.recycler_item_count);
+        recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), spanCount));
         recyclerView.setAdapter(mAdapter);
 
         setupMainViewModel();
