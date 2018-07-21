@@ -25,7 +25,7 @@ public interface FileDao {
     @Delete
     void deleteFile(File file);
 
-    @Query("SELECT * FROM files WHERE id = :id")
-    LiveData<File> loadFileById(int id);
+    @Query("SELECT * FROM files WHERE file_name = :name")
+    LiveData<File> loadFileByName(String name);
 
 }

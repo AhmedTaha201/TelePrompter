@@ -10,8 +10,8 @@ public class FileViewModel extends ViewModel {
 
     private LiveData<File> mFile;
 
-    public FileViewModel(FileDatabase mDb, int mId) {
-        mFile = mDb.fileDao().loadFileById(mId);
+    public FileViewModel(FileDatabase mDb, String mName) {
+        mFile = mDb.fileDao().loadFileByName(mName);
     }
 
     public LiveData<File> getmFile() {

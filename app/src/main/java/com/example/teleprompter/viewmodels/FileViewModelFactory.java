@@ -9,16 +9,16 @@ import com.example.teleprompter.database.FileDatabase;
 public class FileViewModelFactory extends ViewModelProvider.NewInstanceFactory {
 
     private FileDatabase mDb;
-    private int mId;
+    private String mName;
 
-    public FileViewModelFactory(FileDatabase mDb, int mId) {
+    public FileViewModelFactory(FileDatabase mDb, String mName) {
         this.mDb = mDb;
-        this.mId = mId;
+        this.mName = mName;
     }
 
     @NonNull
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-        return (T) new FileViewModel(mDb, mId);
+        return (T) new FileViewModel(mDb, mName);
     }
 }
