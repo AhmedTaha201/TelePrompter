@@ -2,4 +2,5 @@
     <string name="app_name">TelePrompter</string>
     <string name="edit_title_hint">Title</string>
     <string name="edit_contents_hint">File contents ...</string>
+    <string name="edit_menu_save_title">Save</string>
 </resources>

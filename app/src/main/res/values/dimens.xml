@@ -6,7 +6,7 @@
     <dimen name="recycler_item_main_margin_8dp">8dp</dimen>
     <dimen name="padding_main_tv_4dp">4dp</dimen>
     <dimen name="card_radius_main_4dp">4dp</dimen>
-    <dimen name="padding_edit_scroll_8dp">8dp</dimen>
+    <dimen name="padding_edit_8dp">8dp</dimen>
     <dimen name="margin_bottom_edit_8dp">8dp</dimen>
 
     <integer name="recycler_item_count">2</integer>

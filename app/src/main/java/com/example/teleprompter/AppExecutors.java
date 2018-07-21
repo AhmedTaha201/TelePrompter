@@ -23,4 +23,7 @@ public class AppExecutors {
         return sInstance;
     }
 
+    public Executor diskIo() {
+        return diskIo;
+    }
 }

@@ -2,38 +2,37 @@
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    tools:menu="menu/edit">
 
-    <ScrollView
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="@dimen/padding_edit_scroll_8dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_edit_8dp">
 
-
-        <LinearLayout
+        <EditText
+            android:id="@+id/et_edit_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_marginBottom="@dimen/margin_bottom_edit_8dp"
+            android:hint="@string/edit_title_hint"
+            android:inputType="text"
+            android:maxLines="1" />
 
-            <EditText
-                android:id="@+id/et_edit_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_bottom_edit_8dp"
-                android:hint="@string/edit_title_hint"
-                android:inputType="text"
-                android:maxLines="1" />
+        <EditText
+            android:id="@+id/et_edit_contents"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="@dimen/margin_bottom_edit_8dp"
+            android:layout_weight="1"
+            android:gravity="top"
+            android:hint="@string/edit_contents_hint"
+            android:inputType="textMultiLine" />
 
-            <EditText
-                android:id="@+id/et_edit_contents"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_bottom_edit_8dp"
-                android:hint="@string/edit_contents_hint"
-                android:inputType="textLongMessage" />
-
-        </LinearLayout>
-    </ScrollView>
+    </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_edit_record"

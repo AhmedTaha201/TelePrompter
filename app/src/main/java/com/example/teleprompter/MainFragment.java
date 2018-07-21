@@ -2,6 +2,7 @@ package com.example.teleprompter;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,12 +15,14 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.teleprompter.database.File;
+import com.example.teleprompter.database.FileDatabase;
 import com.example.teleprompter.viewmodels.MainViewModel;
 
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 
 public class MainFragment extends Fragment implements FilesAdapter.ListItemOnClickListener {
@@ -27,6 +30,7 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
     @BindView(R.id.recycler_view)
     RecyclerView recyclerView;
     private FilesAdapter mAdapter;
+    List<File> mFiles;
 
     @Nullable
     @Override
@@ -51,13 +55,26 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
             @Override
             public void onChanged(@Nullable List<File> files) {
                 mAdapter.setFilesList(files);
+                mFiles = files;
             }
         });
     }
 
+    @OnClick(R.id.fab_main_add_new)
+    public void addNewFile() {
+        Intent editIntent = new Intent(getActivity(), EditActivity.class);
+        startActivity(editIntent);
+    }
+
     @Override
-    public void onListItemClick(int position) {
-        Toast.makeText(getActivity(), "Item Clicked : " + String.valueOf(position), Toast.LENGTH_SHORT).show();
+    public void onListItemClick(final int position) {
+        Toast.makeText(getActivity(), "Item Deleted : " + String.valueOf(position), Toast.LENGTH_SHORT).show();
+        AppExecutors.getInstance().diskIo().execute(new Runnable() {
+            @Override
+            public void run() {
+                FileDatabase.getInstance(getActivity()).fileDao().deleteFile(mFiles.get(position));
+            }
+        });
 
     }
 }
