@@ -2,7 +2,10 @@ package com.example.teleprompter;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,13 +22,20 @@ import android.widget.EditText;
 
 import com.example.teleprompter.database.File;
 import com.example.teleprompter.database.FileDatabase;
+import com.example.teleprompter.utils.FileUtils;
 import com.example.teleprompter.viewmodels.FileViewModel;
 import com.example.teleprompter.viewmodels.FileViewModelFactory;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import timber.log.Timber;
 
 public class EditFragment extends Fragment {
 
@@ -41,6 +51,12 @@ public class EditFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_edit, container, false);
         setHasOptionsMenu(true);
         ButterKnife.bind(this, view);
+        Intent intent = getActivity().getIntent();
+        if (intent != null && intent.hasExtra(MainFragment.EDIT_INTENT_XTRA_TITLE)) {
+            ReadFileTask readFileTask = new ReadFileTask(getActivity());
+            readFileTask.execute(intent.getStringExtra(MainFragment.EDIT_INTENT_XTRA_TITLE));
+        }
+
         return view;
     }
 
@@ -93,6 +109,58 @@ public class EditFragment extends Fragment {
             }
         });
 
+        //Save to the internal storage
+        FileUtils.WriteFileTask writeFileTask = new FileUtils.WriteFileTask(getActivity());
+        writeFileTask.execute(title, contents);
+
+
+    }
+
+    public class ReadFileTask extends AsyncTask<String, Void, String> {
+
+        String fileName;
+        private Context mContext;
+
+        public ReadFileTask(Context mContext) {
+            this.mContext = mContext;
+        }
+
+
+        @Override
+        protected String doInBackground(String... strings) {
+            fileName = strings[0];
+
+            try {
+                FileInputStream inputStream = mContext.openFileInput(fileName);
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                StringBuilder builder = new StringBuilder();
+                String line = bufferedReader.readLine();
+
+                while (line != null) {
+                    builder.append(line).append("\n");
+                    line = bufferedReader.readLine();
+                }
+                return builder.toString();
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Timber.e("Failed to find the file with the name : %s", fileName);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Timber.e("Failed to read the file with the name : %s", fileName);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            et_title.setText(fileName);
+            et_contents.setText(s);
+
+
+        }
 
     }
 

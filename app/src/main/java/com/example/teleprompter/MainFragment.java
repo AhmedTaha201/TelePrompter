@@ -12,10 +12,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.example.teleprompter.database.File;
-import com.example.teleprompter.database.FileDatabase;
 import com.example.teleprompter.viewmodels.MainViewModel;
 
 import java.util.List;
@@ -26,6 +24,8 @@ import butterknife.OnClick;
 
 
 public class MainFragment extends Fragment implements FilesAdapter.ListItemOnClickListener {
+
+    public static final String EDIT_INTENT_XTRA_TITLE = "title_extra";
 
     @BindView(R.id.recycler_view)
     RecyclerView recyclerView;
@@ -68,13 +68,9 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
 
     @Override
     public void onListItemClick(final int position) {
-        Toast.makeText(getActivity(), "Item Deleted : " + String.valueOf(position), Toast.LENGTH_SHORT).show();
-        AppExecutors.getInstance().diskIo().execute(new Runnable() {
-            @Override
-            public void run() {
-                FileDatabase.getInstance(getActivity()).fileDao().deleteFile(mFiles.get(position));
-            }
-        });
 
+        Intent intent = new Intent(getActivity(), EditActivity.class);
+        intent.putExtra(EDIT_INTENT_XTRA_TITLE, mFiles.get(position).getFileName());
+        startActivity(intent);
     }
 }
