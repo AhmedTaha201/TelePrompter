@@ -1,9 +1,14 @@
 package com.example.teleprompter;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,6 +19,8 @@ import android.widget.EditText;
 
 import com.example.teleprompter.database.File;
 import com.example.teleprompter.database.FileDatabase;
+import com.example.teleprompter.viewmodels.FileViewModel;
+import com.example.teleprompter.viewmodels.FileViewModelFactory;
 
 import java.util.Date;
 
@@ -47,23 +54,112 @@ public class EditFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_save) {
-            //Insert the file into the database
-            String title = et_title.getText().toString().trim();
-            String contents = et_contents.getText().toString().trim();
-            contents = contents.substring(0, contents.length() > 300 ? 300 : contents.length());
-            final File currentFile = new File(title, contents, new Date());
-
-            //Todo -- Check if the name already exists
-
-            final FileDatabase db = FileDatabase.getInstance(getActivity());
-            AppExecutors.getInstance().diskIo().execute(new Runnable() {
-                @Override
-                public void run() {
-                    db.fileDao().insertFile(currentFile);
-                }
-            });
-            if (getActivity() != null) getActivity().finish();
+            saveCurrentFile();
+            return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
+    }
+
+    private void saveCurrentFile() {
+        //Insert the file into the database
+        final String title = et_title.getText().toString().trim();
+        String contents = et_contents.getText().toString().trim();
+
+        //Check for empty string
+        if (TextUtils.isEmpty(title) || TextUtils.isEmpty(contents)) {
+            showEmptyDialog(title);
+            return;
+        }
+        contents = contents.substring(0, contents.length() > 300 ? 300 : contents.length());
+        final File newFile = new File(title, contents, new Date());
+
+
+        final FileDatabase db = FileDatabase.getInstance(getActivity());
+
+        FileViewModelFactory factory = new FileViewModelFactory(db, title);
+        final FileViewModel fileViewModel = ViewModelProviders.of(this, factory)
+                .get(FileViewModel.class);
+        fileViewModel.getmFile().observe(this, new Observer<File>() {
+            @Override
+            public void onChanged(@Nullable File file) {
+                fileViewModel.getmFile().removeObserver(this);
+                if (file != null && file.getFileName().equals(newFile.getFileName())) {
+                    //A file with this name exists
+                    showOverwriteDialog(newFile, file, db);
+                } else {
+                    //There is no file with this name
+                    InsertFile(newFile, db);
+                }
+            }
+        });
+
+
+    }
+
+    //A helper method to show an alert dialog if either of the editTexts is empty
+    private void showEmptyDialog(final String title) {
+        new AlertDialog.Builder(getActivity())
+                .setMessage(R.string.empty_dialog_title)
+                .setPositiveButton(R.string.empty_dialog_button_ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                })
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        //Focus on the empty editText
+                        if (TextUtils.isEmpty(title)) {
+                            et_title.requestFocus();
+                        } else {
+                            et_contents.requestFocus();
+                        }
+
+                    }
+                }).show();
+    }
+
+    //A helper method to show an alert dialog to overwrite the existing file or rename it
+    private void showOverwriteDialog(final File newFile, final File currentFile, final FileDatabase db) {
+        // Showing alert dialog
+        // https://developer.android.com/reference/android/app/AlertDialog
+        new AlertDialog.Builder(getActivity())
+                .setTitle(R.string.overwrite_dialog_title)
+                .setMessage(R.string.overwrite_dialog_message)
+                .setPositiveButton(R.string.overwrite_dialog_button_rename, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                        et_title.requestFocus(); //https://stackoverflow.com/questions/14327412/set-focus-on-edittext
+                    }
+                })
+                .setNegativeButton(R.string.overwrite_dialog_button_overwrite, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        AppExecutors.getInstance().diskIo().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                currentFile.setFileContents(newFile.getFileContents());
+                                currentFile.setDate(newFile.getDate());
+                                db.fileDao().updateFile(currentFile);
+                                getActivity().finish();
+                            }
+                        });
+                    }
+                })
+                .show();
+    }
+
+    //a helper method to insert the current file into the database
+    private void InsertFile(final File currentFile, final FileDatabase db) {
+        //inserting into the database
+        AppExecutors.getInstance().diskIo().execute(new Runnable() {
+            @Override
+            public void run() {
+                db.fileDao().insertFile(currentFile);
+            }
+        });
+        if (getActivity() != null) getActivity().finish();
     }
 }

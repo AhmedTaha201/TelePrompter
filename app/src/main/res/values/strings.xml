@@ -1,6 +1,15 @@
 <resources>
     <string name="app_name">TelePrompter</string>
     <string name="edit_title_hint">Title</string>
-    <string name="edit_contents_hint">File contents ...</string>
+    <string name="edit_contents_hint">File contents …</string>
     <string name="edit_menu_save_title">Save</string>
+
+    <string name="overwrite_dialog_title">Overwrite</string>
+    <string name="overwrite_dialog_message">A file with this name already exists\nDo you want to overwrite ?</string>
+    <string name="overwrite_dialog_button_rename">Rename</string>
+    <string name="overwrite_dialog_button_overwrite">Overwrite</string>
+
+    <string name="empty_dialog_title">The title or the contents cannot be empty</string>
+    <string name="empty_dialog_button_ok">OK</string>
+
 </resources>
