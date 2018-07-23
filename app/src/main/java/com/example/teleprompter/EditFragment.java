@@ -29,6 +29,7 @@ import com.example.teleprompter.viewmodels.FileViewModelFactory;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Date;
@@ -38,6 +39,8 @@ import butterknife.ButterKnife;
 import timber.log.Timber;
 
 public class EditFragment extends Fragment {
+
+    private Context mContext;
 
     @BindView(R.id.et_edit_title)
     EditText et_title;
@@ -51,10 +54,14 @@ public class EditFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_edit, container, false);
         setHasOptionsMenu(true);
         ButterKnife.bind(this, view);
+        mContext = getActivity();
         Intent intent = getActivity().getIntent();
-        if (intent != null && intent.hasExtra(MainFragment.EDIT_INTENT_XTRA_TITLE)) {
-            ReadFileTask readFileTask = new ReadFileTask(getActivity());
-            readFileTask.execute(intent.getStringExtra(MainFragment.EDIT_INTENT_XTRA_TITLE));
+        if (intent != null && intent.hasExtra(MainFragment.INTENT_EXTRA_FILE_NAME)) {//Read from the internal storage
+            new ReadInternalFileTask().execute(intent.getStringExtra(MainFragment.INTENT_EXTRA_FILE_NAME));
+        } else if (intent != null && intent.hasExtra(MainFragment.INTENT_EXTRA_FILE_PATH)) { //Read from the external storage
+            String filePath = intent.getStringExtra(MainFragment.INTENT_EXTRA_FILE_PATH);
+            et_title.setText(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.lastIndexOf(".")));
+            new ReadExternalFileTask().execute(filePath);
         }
 
         return view;
@@ -79,15 +86,15 @@ public class EditFragment extends Fragment {
     private void saveCurrentFile() {
         //Insert the file into the database
         final String title = et_title.getText().toString().trim();
-        String contents = et_contents.getText().toString().trim();
+        String fullContents = et_contents.getText().toString().trim();
 
         //Check for empty string
-        if (TextUtils.isEmpty(title) || TextUtils.isEmpty(contents)) {
+        if (TextUtils.isEmpty(title) || TextUtils.isEmpty(fullContents)) {
             showEmptyDialog(title);
             return;
         }
-        contents = contents.substring(0, contents.length() > 300 ? 300 : contents.length());
-        final File newFile = new File(title, contents, new Date());
+        String shortContents = fullContents.substring(0, fullContents.length() > 300 ? 300 : fullContents.length());
+        final File newFile = new File(title, shortContents, new Date());
 
 
         final FileDatabase db = FileDatabase.getInstance(getActivity());
@@ -111,20 +118,43 @@ public class EditFragment extends Fragment {
 
         //Save to the internal storage
         FileUtils.WriteFileTask writeFileTask = new FileUtils.WriteFileTask(getActivity());
-        writeFileTask.execute(title, contents);
-
-
+        writeFileTask.execute(title, fullContents);
     }
 
-    public class ReadFileTask extends AsyncTask<String, Void, String> {
+    public class ReadExternalFileTask extends AsyncTask<String, Void, String> {
 
-        String fileName;
-        private Context mContext;
+        @Override
+        protected String doInBackground(String... strings) {
+            Timber.d("The file path : %s", strings[0]);
+            java.io.File file = new java.io.File(strings[0]);
+            try {
+                StringBuilder stringBuilder = new StringBuilder();
+                BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+                String line = bufferedReader.readLine();
+                while (line != null) {
+                    stringBuilder.append(line).append("\n");
+                    line = bufferedReader.readLine();
+                }
+                return stringBuilder.toString();
 
-        public ReadFileTask(Context mContext) {
-            this.mContext = mContext;
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
 
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            et_contents.setText(s);
+        }
+    }
+
+    public class ReadInternalFileTask extends AsyncTask<String, Void, String> {
+
+        String fileName;
 
         @Override
         protected String doInBackground(String... strings) {

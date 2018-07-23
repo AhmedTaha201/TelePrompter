@@ -12,4 +12,8 @@
     <string name="empty_dialog_title">The title or the contents cannot be empty</string>
     <string name="empty_dialog_button_ok">OK</string>
 
+    <string name="file_picker_text_tab_title">Pick a text file</string>
+
+    <string name="permission_toast_text">You should grant the permission to pick a file</string>
+
 </resources>
