@@ -10,6 +10,8 @@ import butterknife.ButterKnife;
 
 public class EditActivity extends AppCompatActivity {
 
+    private onBackPressedListener mOnBackPressedListener;
+
     @BindView(R.id.edit_toolbar)
     Toolbar toolbar;
 
@@ -20,5 +22,18 @@ public class EditActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit);
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mOnBackPressedListener != null) mOnBackPressedListener.onBackPressed();
+    }
+
+    public void setOnBackPressedListener(onBackPressedListener mOnBackPressedListener) {
+        this.mOnBackPressedListener = mOnBackPressedListener;
+    }
+
+    public interface onBackPressedListener {
+        void onBackPressed();
     }
 }

@@ -11,7 +11,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,9 +40,13 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import timber.log.Timber;
 
-public class EditFragment extends Fragment {
+public class EditFragment extends Fragment implements EditActivity.onBackPressedListener {
 
     private Context mContext;
+
+    private boolean mNewFile = false;
+
+    private boolean mSaved = true;
 
     @BindView(R.id.et_edit_title)
     EditText et_title;
@@ -58,12 +64,17 @@ public class EditFragment extends Fragment {
         Intent intent = getActivity().getIntent();
         if (intent != null && intent.hasExtra(MainFragment.INTENT_EXTRA_FILE_NAME)) {//Read from the internal storage
             new ReadInternalFileTask().execute(intent.getStringExtra(MainFragment.INTENT_EXTRA_FILE_NAME));
+            mNewFile = false;
+            mSaved = true;
         } else if (intent != null && intent.hasExtra(MainFragment.INTENT_EXTRA_FILE_PATH)) { //Read from the external storage
+            mNewFile = true;
+            mSaved = false;
             String filePath = intent.getStringExtra(MainFragment.INTENT_EXTRA_FILE_PATH);
             et_title.setText(filePath.substring(filePath.lastIndexOf("/") + 1, filePath.lastIndexOf(".")));
             new ReadExternalFileTask().execute(filePath);
         }
-
+        setupTextChangedListeners();
+        ((EditActivity) mContext).setOnBackPressedListener(this);
         return view;
     }
 
@@ -119,6 +130,13 @@ public class EditFragment extends Fragment {
         //Save to the internal storage
         FileUtils.WriteFileTask writeFileTask = new FileUtils.WriteFileTask(getActivity());
         writeFileTask.execute(title, fullContents);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mNewFile || !mSaved) {
+            showUnsavedDialog();
+        }
     }
 
     public class ReadExternalFileTask extends AsyncTask<String, Void, String> {
@@ -249,6 +267,31 @@ public class EditFragment extends Fragment {
                 .show();
     }
 
+    public void showUnsavedDialog() {
+        new AlertDialog.Builder(getActivity())
+                .setTitle(R.string.unsaved_dialog_title)
+                .setPositiveButton(R.string.unsaved_dialog_button_save, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        saveCurrentFile();
+                    }
+                })
+                .setNeutralButton(R.string.unsaved_dialog_button_edit, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                })
+                .setNegativeButton(R.string.unsaved_dialog_button_leave, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                        getActivity().finish();
+                    }
+                })
+                .show();
+    }
+
     //a helper method to insert the current file into the database
     private void InsertFile(final File currentFile, final FileDatabase db) {
         //inserting into the database
@@ -259,5 +302,43 @@ public class EditFragment extends Fragment {
             }
         });
         if (getActivity() != null) getActivity().finish();
+    }
+
+    //Watch any text changes
+    private void setupTextChangedListeners() {
+        et_title.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                mSaved = false;
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        et_contents.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                mSaved = false;
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
     }
 }

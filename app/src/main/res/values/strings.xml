@@ -16,4 +16,9 @@
 
     <string name="permission_toast_text">You should grant the permission to pick a file</string>
 
+    <string name="unsaved_dialog_title">Save File</string>
+    <string name="unsaved_dialog_button_save">Save</string>
+    <string name="unsaved_dialog_button_leave">Leave</string>
+    <string name="unsaved_dialog_button_edit">Edit</string>
+
 </resources>
