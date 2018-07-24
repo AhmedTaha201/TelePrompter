@@ -137,6 +137,7 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
 
     @Override
     public boolean getShowDialog() {
+        mShowDialog = mNewFile || !mSaved;
         return mShowDialog;
     }
 
@@ -144,9 +145,6 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
     public void onBackPressed() {
         if (mNewFile || !mSaved) {
             showUnsavedDialog();
-            mShowDialog = true;
-        } else {
-            mShowDialog = false;
         }
     }
 
