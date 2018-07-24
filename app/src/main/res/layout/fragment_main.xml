@@ -58,22 +58,24 @@
                         style="@style/TextAppearance.AppCompat.Medium"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:drawableLeft="@drawable/ic_edit_black_24dp"
+                        android:drawablePadding="@dimen/margin_left_fab_sheet_item_icon_8dp"
+                        android:drawableStart="@drawable/ic_edit_black_24dp"
                         android:gravity="start"
                         android:padding="@dimen/padding_fab_sheet_16dp"
-                        android:text="@string/sheet_fab_create_new_text"
-                        android:textColor="@color/fab_sheet_text_color"
-                        android:textStyle="bold" />
+                        android:text="@string/sheet_fab_create_new_text" />
 
                     <TextView
                         android:id="@+id/fab_entry_import_text"
                         style="@style/TextAppearance.AppCompat.Medium"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:drawableLeft="@drawable/ic_file_black_24dp"
+                        android:drawablePadding="@dimen/margin_left_fab_sheet_item_icon_8dp"
+                        android:drawableStart="@drawable/ic_file_black_24dp"
                         android:gravity="start"
                         android:padding="@dimen/padding_fab_sheet_16dp"
-                        android:text="@string/sheet_fab_import_text"
-                        android:textColor="@color/fab_sheet_text_color"
-                        android:textStyle="bold" />
+                        android:text="@string/sheet_fab_import_text" />
                 </LinearLayout>
 
             </android.support.v7.widget.CardView>

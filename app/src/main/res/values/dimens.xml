@@ -10,6 +10,7 @@
     <dimen name="margin_bottom_edit_8dp">8dp</dimen>
     <dimen name="width_sheet_fab_250dp">250dp</dimen>
     <dimen name="padding_fab_sheet_16dp">16dp</dimen>
+    <dimen name="margin_left_fab_sheet_item_icon_8dp">8dp</dimen>
 
     <integer name="recycler_item_count">2</integer>
 </resources>
