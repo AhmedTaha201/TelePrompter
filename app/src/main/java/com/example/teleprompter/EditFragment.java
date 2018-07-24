@@ -54,6 +54,9 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
     @BindView(R.id.et_edit_contents)
     EditText et_contents;
 
+    //Determines whether or not the dialog is shown and if it should return onBackPressed
+    private boolean mShowDialog;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -133,9 +136,17 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
     }
 
     @Override
+    public boolean getShowDialog() {
+        return mShowDialog;
+    }
+
+    @Override
     public void onBackPressed() {
         if (mNewFile || !mSaved) {
             showUnsavedDialog();
+            mShowDialog = true;
+        } else {
+            mShowDialog = false;
         }
     }
 
