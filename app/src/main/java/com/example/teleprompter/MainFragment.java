@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.example.teleprompter.database.File;
 import com.example.teleprompter.viewmodels.MainViewModel;
+import com.gordonwong.materialsheetfab.MaterialSheetFab;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +40,22 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
     private static final int PERMISSION_CODE_STORAGE = 11;
     private static final int REQUEST_CODE_TXT = 500;
 
-    @BindView(R.id.recycler_view)
-    RecyclerView recyclerView;
     private FilesAdapter mAdapter;
     List<File> mFiles;
+
+    MaterialSheetFab materialSheetFab;
+
+    @BindView(R.id.recycler_view)
+    RecyclerView recyclerView;
+
+    @BindView(R.id.fab_main_add_new)
+    CustomFloatingActionButton fab;
+
+    @BindView(R.id.fab_sheet)
+    View sheetView;
+
+    @BindView(R.id.dim_overlay)
+    View overlay;
 
     @Nullable
     @Override
@@ -56,6 +69,7 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
         recyclerView.setAdapter(mAdapter);
 
         setupMainViewModel();
+        setupSheetFab();
         return view;
     }
 
@@ -75,7 +89,7 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_CODE_STORAGE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            addNewFile();
+            importNewFile();
         } else {
             Toast.makeText(getActivity(), R.string.permission_toast_text, Toast.LENGTH_SHORT).show();
         }
@@ -94,11 +108,18 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
         });
     }
 
-    @OnClick(R.id.fab_main_add_new)
-    public void addNewFile() {
-        /*Intent editIntent = new Intent(getActivity(), EditActivity.class);
-        startActivity(editIntent);*/
+    void setupSheetFab() {
+        int sheetColor = getResources().getColor(R.color.fab_sheet_background_color);
+        int fabColor = getResources().getColor(R.color.colorAccent);
 
+        // Initialize material sheet FAB
+        materialSheetFab = new MaterialSheetFab<>(fab, sheetView, overlay,
+                sheetColor, fabColor);
+    }
+
+    @OnClick(R.id.fab_entry_import_text)
+    public void importNewFile() {
+        if (materialSheetFab.isSheetVisible()) materialSheetFab.hideSheet();
         //Check storage permission
         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -116,6 +137,13 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
                     .pickFile(this, REQUEST_CODE_TXT);
 
         }
+    }
+
+    @OnClick(R.id.fab_entry_create_new)
+    public void createNewFile() {
+        if (materialSheetFab.isSheetVisible()) materialSheetFab.hideSheet();
+        Intent editIntent = new Intent(getActivity(), EditActivity.class);
+        startActivity(editIntent);
     }
 
     @Override

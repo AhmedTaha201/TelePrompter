@@ -20,5 +20,7 @@
     <string name="unsaved_dialog_button_save">Save</string>
     <string name="unsaved_dialog_button_leave">Leave</string>
     <string name="unsaved_dialog_button_edit">Edit</string>
+    <string name="sheet_fab_create_new_text">Create New</string>
+    <string name="sheet_fab_import_text">Import Text</string>
 
 </resources>

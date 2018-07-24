@@ -26,6 +26,7 @@ public class EditActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        // FIXME: 7/23/2018 -- It does not return if it`s just a new empty file
         if (mOnBackPressedListener != null) mOnBackPressedListener.onBackPressed();
     }
 
