@@ -22,5 +22,14 @@
     <string name="unsaved_dialog_button_edit">Edit</string>
     <string name="sheet_fab_create_new_text">Create New</string>
     <string name="sheet_fab_import_text">Import Text</string>
+    <string name="a11y_cd_back_btn">Back</string>
+    <string name="a11u_cd_change_camera">Change camera</string>
+    <string name="a11y_cd_edit_file">Edit file</string>
+    <string name="a11y_cd_reduce_speed">Reduce speed</string>
+    <string name="a11y_cd_increase_speed">Increase speed</string>
+    <string name="a11y_cd_record_settings">Settings</string>
+    <string name="a11y_cd_record_play_text">Play text</string>
+    <string name="a11y_cd_record_video">Record video</string>
+    <string name="record_permission_needed_toast">The Camera permission is needed to record videos</string>
 
 </resources>

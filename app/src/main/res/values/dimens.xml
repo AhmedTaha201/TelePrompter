@@ -11,6 +11,11 @@
     <dimen name="width_sheet_fab_250dp">250dp</dimen>
     <dimen name="padding_fab_sheet_16dp">16dp</dimen>
     <dimen name="margin_left_fab_sheet_item_icon_8dp">8dp</dimen>
+    <dimen name="padding_iv_record_top_bar">4dp</dimen>
+    <dimen name="margin_record_speed_seek_bar_8dp">8dp</dimen>
+    <dimen name="padding_record_play_layout">8dp</dimen>
+    <dimen name="marginside_record_side_btn">16dp</dimen>
+    <dimen name="margin_bottom_record_bottom_play_layout">8dp</dimen>
 
     <integer name="recycler_item_count">2</integer>
 </resources>

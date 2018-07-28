@@ -52,7 +52,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical">
-                    <!--Todo-Add icons -->
                     <TextView
                         android:id="@+id/fab_entry_create_new"
                         style="@style/TextAppearance.AppCompat.Medium"

@@ -18,4 +18,6 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
     }
+
+    //Todo -- onBackPressed hides the fab sheet
 }

@@ -38,6 +38,7 @@ import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import timber.log.Timber;
 
 public class EditFragment extends Fragment implements EditActivity.onBackPressedListener {
@@ -47,6 +48,10 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
     private boolean mNewFile = false;
 
     private boolean mSaved = true;
+
+    //If a dialog is active the app should stay in the current activity
+    boolean mStayInActivity;
+    boolean mContinueToVideo;
 
     @BindView(R.id.et_edit_title)
     EditText et_title;
@@ -97,6 +102,18 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
         return false;
     }
 
+    @OnClick(R.id.fab_edit_record)
+    public void startNewRecord() {
+        mContinueToVideo = true;
+        //The file before moving to the record activity
+        saveCurrentFile();
+        //Start the record activity
+        if (mStayInActivity) return;
+        Intent recordIntent = new Intent(getContext().getApplicationContext(), VideoActivity.class);
+        startActivity(recordIntent);
+
+    }
+
     private void saveCurrentFile() {
         //Insert the file into the database
         final String title = et_title.getText().toString().trim();
@@ -122,7 +139,9 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
                 fileViewModel.getmFile().removeObserver(this);
                 if (file != null && file.getFileName().equals(newFile.getFileName())) {
                     //A file with this name exists
-                    showOverwriteDialog(newFile, file, db);
+                    if (!mContinueToVideo) {
+                        showOverwriteDialog(newFile, file, db);
+                    }
                 } else {
                     //There is no file with this name
                     InsertFile(newFile, db);
@@ -223,6 +242,7 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
 
     //A helper method to show an alert dialog if either of the editTexts is empty
     private void showEmptyDialog(final String title) {
+        mStayInActivity = true;
         new AlertDialog.Builder(getActivity())
                 .setMessage(R.string.empty_dialog_title)
                 .setPositiveButton(R.string.empty_dialog_button_ok, new DialogInterface.OnClickListener() {
@@ -249,6 +269,7 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
     private void showOverwriteDialog(final File newFile, final File currentFile, final FileDatabase db) {
         // Showing alert dialog
         // https://developer.android.com/reference/android/app/AlertDialog
+        mStayInActivity = true;
         new AlertDialog.Builder(getActivity())
                 .setTitle(R.string.overwrite_dialog_title)
                 .setMessage(R.string.overwrite_dialog_message)
@@ -268,6 +289,7 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
                                 currentFile.setFileContents(newFile.getFileContents());
                                 currentFile.setDate(newFile.getDate());
                                 db.fileDao().updateFile(currentFile);
+                                mStayInActivity = false;
                                 getActivity().finish();
                             }
                         });
