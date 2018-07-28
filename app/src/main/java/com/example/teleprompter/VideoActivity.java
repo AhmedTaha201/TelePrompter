@@ -9,6 +9,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,17 +21,23 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.example.teleprompter.utils.FileUtils;
+
+import java.io.IOException;
 import java.util.Arrays;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import timber.log.Timber;
 
 public class VideoActivity extends AppCompatActivity {
 
     public static final int PERMISSION_REQUEST_CODE_CAMERA = 0;
+    public static final int PERMISSION_REQUEST_CODE_EXT_STORAGE = 1;
 
     //Camera Device
     CameraDevice mCameraDevice;
@@ -39,11 +46,30 @@ public class VideoActivity extends AppCompatActivity {
     Handler mHandler;
     //Preview
     private CaptureRequest.Builder mCaptureRequestBuilder;
+    //Record
+    boolean mIsRecording;
+    //CameraId
+    private String mCameraId;
+    //File
+    String mVideoFilePath;
+    @BindView(R.id.record_btn_record_video)
+    ImageView mRecordButton;
+    private MediaRecorder mMediaRecorder;
     CameraDevice.StateCallback mCameraStateCallback = new CameraDevice.StateCallback() {
         @Override
         public void onOpened(@NonNull CameraDevice camera) {
+            //For pre-Marshmallow devices that causes the activity to pause for giving the permission for the first time
             mCameraDevice = camera;
-            startPreview();
+            if (mIsRecording) {
+                try {
+                    mVideoFilePath = FileUtils.createVideoFile(getApplicationContext());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                startNewVideo();
+            } else {
+                startPreview();
+            }
         }
 
         @Override
@@ -58,8 +84,6 @@ public class VideoActivity extends AppCompatActivity {
             mCameraDevice = null;
         }
     };
-    //CameraId
-    private String mCameraId;
 
     //TextureView
     @BindView(R.id.texture_view)
@@ -98,6 +122,7 @@ public class VideoActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         startBackgroundThread();
+        mMediaRecorder = new MediaRecorder();
         if (mTextureView.isAvailable()) {
             setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
             openCamera();
@@ -115,7 +140,7 @@ public class VideoActivity extends AppCompatActivity {
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-        //super.onWindowFocusChanged(hasFocus);
+        super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
             View decorView = getWindow().getDecorView();
             decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -124,6 +149,32 @@ public class VideoActivity extends AppCompatActivity {
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                     | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSION_REQUEST_CODE_CAMERA && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Timber.i("Camera permission successfully granted");
+            openCamera();
+        }
+        if (requestCode == PERMISSION_REQUEST_CODE_EXT_STORAGE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Timber.i("External storage successfully granted");
+            startNewVideo();
+        }
+    }
+
+
+    @OnClick(R.id.record_btn_record_video)
+    public void recordButtonTrigger() {
+        if (mIsRecording) {
+            mIsRecording = false;
+            mRecordButton.setImageResource(R.drawable.ic_videocam_green);
+            startPreview();
+            mMediaRecorder.stop();
+            mMediaRecorder.reset();
+        } else {
+            startNewVideo();
         }
     }
 
@@ -176,6 +227,7 @@ public class VideoActivity extends AppCompatActivity {
     private void startPreview() {
         //The surface from the textureView
         SurfaceTexture surfaceTexture = mTextureView.getSurfaceTexture();
+        //Todo -- Choose optimal size
         surfaceTexture.setDefaultBufferSize(1080, 720);
         Surface previewSurface = new Surface(surfaceTexture);
 
@@ -204,11 +256,96 @@ public class VideoActivity extends AppCompatActivity {
 
     }
 
+    //Record new video
+    public void startNewVideo() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+            if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                Toast.makeText(this, "The storage permission is needed to save video files", Toast.LENGTH_SHORT).show();
+            }
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    PERMISSION_REQUEST_CODE_EXT_STORAGE);
+
+        } else {
+            mIsRecording = true;
+            mRecordButton.setImageResource(R.drawable.ic_videocam_red);
+            try {
+                mVideoFilePath = FileUtils.createVideoFile(this);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            startRecording();
+        }
+
+
+    }
+
+    private void setupMediaRecorder() {
+        mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mMediaRecorder.setOutputFile(mVideoFilePath);
+        mMediaRecorder.setVideoEncodingBitRate(10000000);
+        mMediaRecorder.setVideoFrameRate(30);
+        //Todo -- Choose optimal size
+        mMediaRecorder.setVideoSize(1280, 720);
+        mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+        try {
+            mMediaRecorder.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void startRecording() {
+
+        setupMediaRecorder();
+        SurfaceTexture surfaceTexture = mTextureView.getSurfaceTexture();
+        Surface previewSurface = new Surface(surfaceTexture);
+
+        Surface recordSurface = mMediaRecorder.getSurface();
+        try {
+            mCaptureRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+            mCaptureRequestBuilder.addTarget(previewSurface);
+            mCaptureRequestBuilder.addTarget(recordSurface);
+
+            mCameraDevice.createCaptureSession(Arrays.asList(previewSurface, recordSurface),
+                    new CameraCaptureSession.StateCallback() {
+                        @Override
+                        public void onConfigured(@NonNull CameraCaptureSession session) {
+                            Timber.i("Recording session started successfully");
+                            try {
+                                session.setRepeatingRequest(mCaptureRequestBuilder.build(), null, null);
+                            } catch (CameraAccessException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                            Timber.e("Failed to create the capture session");
+                        }
+                    }, null);
+
+            //Start recording
+            mMediaRecorder.start();
+
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     //Close the active camera device
     private void closeCamera() {
         if (mCameraDevice != null) {
             mCameraDevice.close();
             mCameraDevice = null;
+        }
+        if (mMediaRecorder != null) {
+            mMediaRecorder.release();
+            mMediaRecorder = null;
         }
     }
 

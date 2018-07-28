@@ -149,7 +149,7 @@
                 android:layout_marginEnd="@dimen/marginside_record_side_btn"
                 android:contentDescription="@string/a11y_cd_record_video"
                 android:padding="@dimen/padding_iv_record_top_bar"
-                android:src="@drawable/ic_videocam_24dp"
+                android:src="@drawable/ic_videocam_green"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/record_btn_play" />

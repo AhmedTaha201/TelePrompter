@@ -2,10 +2,16 @@ package com.example.teleprompter.utils;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Environment;
 
+import com.example.teleprompter.R;
+
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import timber.log.Timber;
 
@@ -54,6 +60,28 @@ public class FileUtils {
         protected void onPostExecute(Boolean aBoolean) {
             super.onPostExecute(aBoolean);
         }
+    }
+
+    public static String createVideoFile(Context context) throws IOException {
+        //Create video directory
+        File dcimDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+        File videoDir = new File(dcimDir, context.getString(R.string.app_name));
+        if (!videoDir.exists()) {
+            if (!videoDir.mkdirs()) {
+                throw new IOException("Failed to make the videos folder");
+            }
+        }
+
+        //Create a new video file
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String prefix = "Video_" + timeStamp + "_";
+        try {
+            return File.createTempFile(prefix, ".mp4", videoDir).getAbsolutePath();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Timber.e("Failed to create a new video file");
+        }
+        return null;
     }
 
 }
