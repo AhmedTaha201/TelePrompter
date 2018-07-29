@@ -15,10 +15,7 @@
         android:id="@+id/top_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/record_bars_background"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:background="@color/record_bars_background">
 
         <ImageView
             android:id="@+id/record_btn_back"
@@ -92,7 +89,7 @@
                 android:layout_marginLeft="@dimen/margin_record_speed_seek_bar_8dp"
                 android:layout_marginRight="@dimen/margin_record_speed_seek_bar_8dp"
                 android:max="20"
-                android:minWidth="300dp"
+                android:minWidth="@dimen/min_width_record_seek_bar"
                 android:progress="5"
                 app:layout_constraintEnd_toStartOf="@+id/record_btn_increase_speed"
                 app:layout_constraintHorizontal_bias="0.5"
@@ -140,6 +137,19 @@
                 app:layout_constraintEnd_toStartOf="@+id/record_btn_record_video"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/record_btn_settings" />
+
+
+            <Chronometer
+                android:id="@+id/timer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:visibility="gone"
+                android:textColor="#FF0000"
+                android:textSize="20sp"
+                app:layout_constraintTop_toTopOf="@id/record_btn_record_video"
+                app:layout_constraintBottom_toBottomOf="@id/record_btn_record_video"
+                app:layout_constraintEnd_toStartOf="@+id/record_btn_record_video" />
 
 
             <ImageView

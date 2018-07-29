@@ -16,6 +16,7 @@
     <dimen name="padding_record_play_layout">8dp</dimen>
     <dimen name="marginside_record_side_btn">16dp</dimen>
     <dimen name="margin_bottom_record_bottom_play_layout">8dp</dimen>
+    <dimen name="min_width_record_seek_bar">300dp</dimen>
 
     <integer name="recycler_item_count">2</integer>
 </resources>

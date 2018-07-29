@@ -17,6 +17,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -25,6 +26,7 @@ import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -97,6 +99,10 @@ public class VideoActivity extends AppCompatActivity {
             mCameraDevice = null;
         }
     };
+
+    //Timer
+    @BindView(R.id.timer)
+    Chronometer mTimer;
 
     //TextureView
     @BindView(R.id.texture_view)
@@ -181,6 +187,8 @@ public class VideoActivity extends AppCompatActivity {
     @OnClick(R.id.record_btn_record_video)
     public void recordButtonTrigger() {
         if (mIsRecording) {
+            mTimer.stop();
+            mTimer.setVisibility(View.GONE);
             mIsRecording = false;
             mRecordButton.setImageResource(R.drawable.ic_videocam_green);
             startPreview();
@@ -356,6 +364,7 @@ public class VideoActivity extends AppCompatActivity {
                     }, null);
 
             //Start recording
+            startTimer();
             mMediaRecorder.start();
 
         } catch (CameraAccessException e) {
@@ -364,6 +373,11 @@ public class VideoActivity extends AppCompatActivity {
 
     }
 
+    private void startTimer() {
+        mTimer.setBase(SystemClock.elapsedRealtime());
+        mTimer.setVisibility(View.VISIBLE);
+        mTimer.start();
+    }
     //Close the active camera device
     private void closeCamera() {
         if (mCameraDevice != null) {
