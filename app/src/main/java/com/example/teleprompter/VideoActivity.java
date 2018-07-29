@@ -45,6 +45,7 @@ public class VideoActivity extends AppCompatActivity {
 
     public static final int PERMISSION_REQUEST_CODE_CAMERA = 0;
     public static final int PERMISSION_REQUEST_CODE_EXT_STORAGE = 1;
+    public static final int PERMISSION_REQUEST_CODE_RECORD_AUDIO = 2;
 
     //Camera Device
     CameraDevice mCameraDevice;
@@ -178,8 +179,13 @@ public class VideoActivity extends AppCompatActivity {
             openCamera();
         }
         if (requestCode == PERMISSION_REQUEST_CODE_EXT_STORAGE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            Timber.i("External storage successfully granted");
+            Timber.i("External storage permission successfully granted");
             startNewVideo();
+        }
+        if (requestCode == PERMISSION_REQUEST_CODE_RECORD_AUDIO && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Timber.i("Audio permission successfully granted");
+            startNewVideo();
+
         }
     }
 
@@ -293,16 +299,19 @@ public class VideoActivity extends AppCompatActivity {
 
     //Record new video
     public void startNewVideo() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        != PackageManager.PERMISSION_GRANTED) {
-            if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                Toast.makeText(this, "The storage permission is needed to save video files", Toast.LENGTH_SHORT).show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestAudioAndStoragePermissions();
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                mIsRecording = true;
+                mRecordButton.setImageResource(R.drawable.ic_videocam_red);
+                try {
+                    mVideoFilePath = FileUtils.createVideoFile(this);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                startRecording();
             }
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    PERMISSION_REQUEST_CODE_EXT_STORAGE);
-
         } else {
             mIsRecording = true;
             mRecordButton.setImageResource(R.drawable.ic_videocam_red);
@@ -317,13 +326,43 @@ public class VideoActivity extends AppCompatActivity {
 
     }
 
+    private void requestAudioAndStoragePermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                    Toast.makeText(this, "The storage permission is needed to save video files", Toast.LENGTH_SHORT).show();
+                }
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        PERMISSION_REQUEST_CODE_EXT_STORAGE);
+            }
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                if (shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO)) {
+                    Toast.makeText(this, "The Audio permission is needed to record audio", Toast.LENGTH_SHORT).show();
+                }
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.RECORD_AUDIO},
+                        PERMISSION_REQUEST_CODE_RECORD_AUDIO);
+            }
+
+        }
+    }
+
     private void setupMediaRecorder() {
+        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mMediaRecorder.setOutputFile(mVideoFilePath);
         mMediaRecorder.setVideoEncodingBitRate(10000000);
         mMediaRecorder.setVideoFrameRate(30);
         mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
+        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         try {
             mMediaRecorder.prepare();
@@ -378,6 +417,7 @@ public class VideoActivity extends AppCompatActivity {
         mTimer.setVisibility(View.VISIBLE);
         mTimer.start();
     }
+
     //Close the active camera device
     private void closeCamera() {
         if (mCameraDevice != null) {
