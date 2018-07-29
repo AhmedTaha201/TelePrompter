@@ -1,6 +1,7 @@
 package com.example.teleprompter;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -13,6 +14,7 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -33,6 +35,7 @@ import android.widget.Toast;
 import com.example.teleprompter.utils.CameraUtils;
 import com.example.teleprompter.utils.FileUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -200,6 +203,11 @@ public class VideoActivity extends AppCompatActivity {
             startPreview();
             mMediaRecorder.stop();
             mMediaRecorder.reset();
+
+            //Scan the file to appear in the device studio
+            Intent mediaScannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            mediaScannerIntent.setData(Uri.fromFile(new File(mVideoFilePath)));
+            sendBroadcast(mediaScannerIntent);
         } else {
             startNewVideo();
         }
