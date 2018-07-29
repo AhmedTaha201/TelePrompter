@@ -2,6 +2,8 @@ package com.example.teleprompter;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -9,6 +11,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,12 +21,14 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.example.teleprompter.utils.CameraUtils;
 import com.example.teleprompter.utils.FileUtils;
 
 import java.io.IOException;
@@ -45,16 +50,24 @@ public class VideoActivity extends AppCompatActivity {
     HandlerThread mThread;
     Handler mHandler;
     //Preview
+    Size mPreviewSize;
     private CaptureRequest.Builder mCaptureRequestBuilder;
+
+    //Orientation
+    int mTotalRotation;
+
     //Record
     boolean mIsRecording;
+    Size mVideoSize;
     //CameraId
     private String mCameraId;
     //File
     String mVideoFilePath;
     @BindView(R.id.record_btn_record_video)
     ImageView mRecordButton;
+
     private MediaRecorder mMediaRecorder;
+
     CameraDevice.StateCallback mCameraStateCallback = new CameraDevice.StateCallback() {
         @Override
         public void onOpened(@NonNull CameraDevice camera) {
@@ -97,7 +110,7 @@ public class VideoActivity extends AppCompatActivity {
 
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-
+            configureTransform(width, height);
         }
 
         @Override
@@ -183,6 +196,7 @@ public class VideoActivity extends AppCompatActivity {
     //Get the Id of the front camera
     private void setupCamera(int width, int height) {
         CameraManager cameraManager = (CameraManager) getSystemService(CAMERA_SERVICE);
+        configureTransform(width, height);
         try {
             if (cameraManager == null) return;
             for (String cameraId : cameraManager.getCameraIdList()) {
@@ -191,6 +205,20 @@ public class VideoActivity extends AppCompatActivity {
                     continue;
                 }
                 mCameraId = cameraId;
+
+                int deviceOrientation = getWindowManager().getDefaultDisplay().getRotation();
+                mTotalRotation = CameraUtils.calculateTotalRotation(cc, deviceOrientation);
+                StreamConfigurationMap map = cc.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+
+                int finalWidth = width;
+                int finalHeight = height;
+                boolean swapDimensions = mTotalRotation == 90 || mTotalRotation == 270;
+                if (swapDimensions) {
+                    finalHeight = width;
+                    finalWidth = height;
+                }
+                mPreviewSize = CameraUtils.chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class), finalWidth, finalHeight);
+                mVideoSize = CameraUtils.chooseOptimalSize(map.getOutputSizes(MediaRecorder.class), finalWidth, finalHeight);
                 return;
             }
         } catch (CameraAccessException e) {
@@ -227,8 +255,7 @@ public class VideoActivity extends AppCompatActivity {
     private void startPreview() {
         //The surface from the textureView
         SurfaceTexture surfaceTexture = mTextureView.getSurfaceTexture();
-        //Todo -- Choose optimal size
-        surfaceTexture.setDefaultBufferSize(1080, 720);
+        surfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
         Surface previewSurface = new Surface(surfaceTexture);
 
         try {
@@ -288,8 +315,7 @@ public class VideoActivity extends AppCompatActivity {
         mMediaRecorder.setOutputFile(mVideoFilePath);
         mMediaRecorder.setVideoEncodingBitRate(10000000);
         mMediaRecorder.setVideoFrameRate(30);
-        //Todo -- Choose optimal size
-        mMediaRecorder.setVideoSize(1280, 720);
+        mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         try {
             mMediaRecorder.prepare();
@@ -302,6 +328,7 @@ public class VideoActivity extends AppCompatActivity {
 
         setupMediaRecorder();
         SurfaceTexture surfaceTexture = mTextureView.getSurfaceTexture();
+        surfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
         Surface previewSurface = new Surface(surfaceTexture);
 
         Surface recordSurface = mMediaRecorder.getSurface();
@@ -368,4 +395,40 @@ public class VideoActivity extends AppCompatActivity {
             Timber.e("Failed to stop the background thread");
         }
     }
+
+    /*The following helper method is copied from here
+     * https://github.com/googlesamples/android-Camera2Basic/blob/master/Application/src/main/java/com/example/android/camera2basic/Camera2BasicFragment.java*/
+
+    /**
+     * Configures the necessary {@link android.graphics.Matrix} transformation to `mTextureView`.
+     * This method should be called after the camera preview size is determined in
+     * setUpCameraOutputs and also the size of `mTextureView` is fixed.
+     *
+     * @param viewWidth  The width of `mTextureView`
+     * @param viewHeight The height of `mTextureView`
+     */
+    private void configureTransform(int viewWidth, int viewHeight) {
+        if (null == mTextureView || null == mPreviewSize) {
+            return;
+        }
+        int rotation = getWindowManager().getDefaultDisplay().getRotation();
+        Matrix matrix = new Matrix();
+        RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
+        RectF bufferRect = new RectF(0, 0, mPreviewSize.getHeight(), mPreviewSize.getWidth());
+        float centerX = viewRect.centerX();
+        float centerY = viewRect.centerY();
+        if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
+            bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY());
+            matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL);
+            float scale = Math.max(
+                    (float) viewHeight / mPreviewSize.getHeight(),
+                    (float) viewWidth / mPreviewSize.getWidth());
+            matrix.postScale(scale, scale, centerX, centerY);
+            matrix.postRotate(90 * (rotation - 2), centerX, centerY);
+        } else if (Surface.ROTATION_180 == rotation) {
+            matrix.postRotate(180, centerX, centerY);
+        }
+        mTextureView.setTransform(matrix);
+    }
+
 }
