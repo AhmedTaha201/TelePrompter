@@ -227,6 +227,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
         if (mIsRecording) {
             mTimer.stop();
             mTimer.setVisibility(View.GONE);
+            scrollContents();
             mIsRecording = false;
             mRecordButton.setImageResource(R.drawable.ic_videocam_green);
             startPreview();
@@ -467,6 +468,8 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
 
             //Start recording
             startTimer();
+            mScrollPlaying = false;
+            scrollContents();
             mMediaRecorder.start();
 
         } catch (CameraAccessException e) {
@@ -490,6 +493,9 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
         if (mMediaRecorder != null) {
             mMediaRecorder.release();
             mMediaRecorder = null;
+        }
+        if (mAnimator != null && mAnimator.isStarted()) {
+            mAnimator.cancel();
         }
     }
 
