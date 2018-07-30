@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.example.teleprompter.customview.CustomFloatingActionButton;
 import com.example.teleprompter.database.File;
 import com.example.teleprompter.viewmodels.MainViewModel;
 import com.gordonwong.materialsheetfab.MaterialSheetFab;

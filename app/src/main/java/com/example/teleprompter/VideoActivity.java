@@ -1,6 +1,8 @@
 package com.example.teleprompter;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Matrix;
@@ -28,10 +30,13 @@ import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.Chronometer;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.teleprompter.customview.CustomScrollView;
 import com.example.teleprompter.utils.CameraUtils;
 import com.example.teleprompter.utils.FileUtils;
 
@@ -44,11 +49,17 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import timber.log.Timber;
 
-public class VideoActivity extends AppCompatActivity {
+public class VideoActivity extends AppCompatActivity implements CustomScrollView.OnScrollListener {
 
     public static final int PERMISSION_REQUEST_CODE_CAMERA = 0;
     public static final int PERMISSION_REQUEST_CODE_EXT_STORAGE = 1;
     public static final int PERMISSION_REQUEST_CODE_RECORD_AUDIO = 2;
+
+    public static final String INTENT_EXTRA_FILE_CONTENTS = "contents";
+
+    boolean mScrollPlaying;
+    public static final String SCROLL_Y_STRING = "scrollY";
+    public static final int SCROLL_SPEED = 400000;
 
     //Camera Device
     CameraDevice mCameraDevice;
@@ -104,6 +115,8 @@ public class VideoActivity extends AppCompatActivity {
         }
     };
 
+    ObjectAnimator mAnimator;
+
     //Timer
     @BindView(R.id.timer)
     Chronometer mTimer;
@@ -134,11 +147,27 @@ public class VideoActivity extends AppCompatActivity {
         }
     };
 
+    @BindView(R.id.record_scrollView)
+    CustomScrollView mScrollView;
+
+    @BindView(R.id.tv_record_contents)
+    TextView mFileContents;
+
+    @BindView(R.id.record_btn_scroll_play)
+    ImageView mScrollPlay;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video);
         ButterKnife.bind(this);
+
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra(INTENT_EXTRA_FILE_CONTENTS)) {
+            mFileContents.setText(intent.getStringExtra(INTENT_EXTRA_FILE_CONTENTS));
+        }
+
+        mScrollView.setOnScrollListener(this);
     }
 
     @Override
@@ -213,8 +242,34 @@ public class VideoActivity extends AppCompatActivity {
         }
     }
 
+    @OnClick(R.id.record_btn_scroll_play)
+    public void scrollContents() {
+
+        if (!mScrollPlaying) {
+            if (mScrollView.isFlingRunning()) {
+                mScrollView.setAnimateAfterFling(true);
+                mScrollPlay.setImageResource(R.drawable.ic_pause);
+                return;
+            }
+            prepareAnimator();
+            mScrollPlaying = true;
+            mScrollPlay.setImageResource(R.drawable.ic_pause);
+            if (mAnimator != null) mAnimator.start();
+        } else {
+            mScrollPlaying = false;
+            mScrollPlay.setImageResource(R.drawable.ic_play);
+            mScrollView.setAnimateAfterFling(false);
+            if (mAnimator != null) {
+                mAnimator.cancel();
+            }
+
+        }
+
+    }
+
     //Helpers
 
+    /* Camera Helpers */
     //Get the Id of the front camera
     private void setupCamera(int width, int height) {
         CameraManager cameraManager = (CameraManager) getSystemService(CAMERA_SERVICE);
@@ -491,6 +546,72 @@ public class VideoActivity extends AppCompatActivity {
             matrix.postRotate(180, centerX, centerY);
         }
         mTextureView.setTransform(matrix);
+    }
+
+    /* Animation Helpers */
+
+    public void prepareAnimator() {
+        mScrollView.setSmoothScrollingEnabled(true);
+        final int totalHeight = mScrollView.getChildAt(0).getHeight();
+        float currentY = mScrollView.getY();
+        mAnimator = ObjectAnimator.ofInt(mScrollView, SCROLL_Y_STRING, (int) (totalHeight - currentY));
+
+        mAnimator.setDuration(SCROLL_SPEED);
+        mAnimator.setInterpolator(new LinearInterpolator());
+        mAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+
+                if (mScrollView.isBottomReached()) {
+                    mScrollPlaying = false;
+                    mScrollPlay.setImageResource(R.drawable.ic_play);
+                    mScrollView.setSmoothScrollingEnabled(false);
+                }
+
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                Timber.d("Animation canceled");
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+        mScrollView.setObjectAnimator(mAnimator);
+    }
+
+
+    @Override
+    public void onFlingStarted() {
+        //No need to cancel the animation the fling took care of that
+        Timber.d("A fling just started");
+
+    }
+
+    @Override
+    public void onFlingStopped() {
+        if (mScrollView.isAnimateAfterFling()) {
+            scrollContents();
+        }
+        if (mScrollPlaying) {//The scroll animation was started
+            if (mScrollView.isBottomReached()) {
+                mScrollPlaying = false;
+                mScrollPlay.setImageResource(R.drawable.ic_play);
+                mScrollView.setSmoothScrollingEnabled(false);
+            }
+            if (!mScrollView.isAnimateAfterFling()) {
+                prepareAnimator();
+                mAnimator.start();
+            }
+        }
     }
 
 }

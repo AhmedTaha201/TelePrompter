@@ -11,6 +11,25 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <com.example.teleprompter.customview.CustomScrollView
+        android:id="@+id/record_scrollView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:verticalScrollbarPosition="left"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/tv_record_contents"
+            style="@style/TextAppearance.AppCompat.Display1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="@dimen/max_width_record_scroll_contetns"
+            android:padding="@dimen/padding_record_contents"
+            android:textColor="@color/record_scroll_contetns_text"
+            tools:text="@tools:sample/lorem/random" />
+
+    </com.example.teleprompter.customview.CustomScrollView>
+
     <android.support.constraint.ConstraintLayout
         android:id="@+id/top_bar"
         android:layout_width="match_parent"
@@ -122,18 +141,18 @@
                 android:contentDescription="@string/a11y_cd_record_settings"
                 android:padding="@dimen/padding_iv_record_top_bar"
                 android:src="@drawable/ic_settings_24dp"
-                app:layout_constraintEnd_toStartOf="@+id/record_btn_play"
+                app:layout_constraintEnd_toStartOf="@+id/record_btn_scroll_play"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintHorizontal_chainStyle="spread_inside"
                 app:layout_constraintStart_toStartOf="parent" />
 
             <ImageView
-                android:id="@+id/record_btn_play"
+                android:id="@+id/record_btn_scroll_play"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/a11y_cd_record_play_text"
                 android:padding="@dimen/padding_iv_record_top_bar"
-                android:src="@drawable/ic_play_arrow_24dp"
+                android:src="@drawable/ic_play"
                 app:layout_constraintEnd_toStartOf="@+id/record_btn_record_video"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/record_btn_settings" />
@@ -143,13 +162,13 @@
                 android:id="@+id/timer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="@dimen/margin_end_record_timer"
+                android:textColor="@color/record_timer_text_color"
+                android:textSize="@dimen/record_timer_text_size"
                 android:visibility="gone"
-                android:textColor="#FF0000"
-                android:textSize="20sp"
-                app:layout_constraintTop_toTopOf="@id/record_btn_record_video"
                 app:layout_constraintBottom_toBottomOf="@id/record_btn_record_video"
-                app:layout_constraintEnd_toStartOf="@+id/record_btn_record_video" />
+                app:layout_constraintEnd_toStartOf="@+id/record_btn_record_video"
+                app:layout_constraintTop_toTopOf="@id/record_btn_record_video" />
 
 
             <ImageView
@@ -162,7 +181,7 @@
                 android:src="@drawable/ic_videocam_green"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toEndOf="@+id/record_btn_play" />
+                app:layout_constraintStart_toEndOf="@+id/record_btn_scroll_play" />
 
 
         </android.support.constraint.ConstraintLayout>

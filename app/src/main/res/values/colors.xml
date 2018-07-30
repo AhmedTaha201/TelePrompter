@@ -8,4 +8,6 @@
     <color name="fab_sheet_background_color">#FFFFFF</color>
     <color name="fab_sheet_text_color">#000000</color>
     <color name="record_bars_background">#73000000</color>
+    <color name="record_timer_text_color">#FF0000</color>
+    <color name="record_scroll_contetns_text">#FFFFFF</color>
 </resources>

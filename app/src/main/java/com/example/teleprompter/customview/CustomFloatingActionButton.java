@@ -1,4 +1,4 @@
-package com.example.teleprompter;
+package com.example.teleprompter.customview;
 
 import android.content.Context;
 import android.support.design.widget.FloatingActionButton;

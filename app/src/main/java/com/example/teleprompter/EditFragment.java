@@ -62,6 +62,8 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
     //Determines whether or not the dialog is shown and if it should return onBackPressed
     private boolean mShowDialog;
 
+    String mFullContents;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -110,6 +112,7 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
         //Start the record activity
         if (mStayInActivity) return;
         Intent recordIntent = new Intent(getContext().getApplicationContext(), VideoActivity.class);
+        recordIntent.putExtra(VideoActivity.INTENT_EXTRA_FILE_CONTENTS, mFullContents);
         startActivity(recordIntent);
 
     }
@@ -117,14 +120,14 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
     private void saveCurrentFile() {
         //Insert the file into the database
         final String title = et_title.getText().toString().trim();
-        String fullContents = et_contents.getText().toString().trim();
+        mFullContents = et_contents.getText().toString().trim();
 
         //Check for empty string
-        if (TextUtils.isEmpty(title) || TextUtils.isEmpty(fullContents)) {
+        if (TextUtils.isEmpty(title) || TextUtils.isEmpty(mFullContents)) {
             showEmptyDialog(title);
             return;
         }
-        String shortContents = fullContents.substring(0, fullContents.length() > 300 ? 300 : fullContents.length());
+        String shortContents = mFullContents.substring(0, mFullContents.length() > 300 ? 300 : mFullContents.length());
         final File newFile = new File(title, shortContents, new Date());
 
 
@@ -151,7 +154,7 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
 
         //Save to the internal storage
         FileUtils.WriteFileTask writeFileTask = new FileUtils.WriteFileTask(getActivity());
-        writeFileTask.execute(title, fullContents);
+        writeFileTask.execute(title, mFullContents);
     }
 
     @Override
@@ -362,7 +365,7 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mSaved = false;
+                mSaved = s.equals(mFullContents);
             }
 
             @Override
