@@ -25,7 +25,8 @@
             android:layout_height="wrap_content"
             android:maxWidth="@dimen/max_width_record_scroll_contetns"
             android:padding="@dimen/padding_record_contents"
-            android:textColor="@color/record_scroll_contetns_text"
+            android:textColor="@color/record_scroll_contents_text"
+            android:background="@android:color/transparent"
             tools:text="@tools:sample/lorem/random" />
 
     </com.example.teleprompter.customview.CustomScrollView>
@@ -96,18 +97,18 @@
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/a11y_cd_reduce_speed"
                 android:src="@drawable/ic_chevron_left_24dp"
-                app:layout_constraintEnd_toStartOf="@+id/recored_speed_seek_bar"
+                app:layout_constraintEnd_toStartOf="@+id/record_speed_seek_bar"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintStart_toStartOf="parent" />
 
             <SeekBar
-                android:id="@+id/recored_speed_seek_bar"
+                android:id="@+id/record_speed_seek_bar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="@dimen/margin_record_speed_seek_bar_8dp"
                 android:layout_marginRight="@dimen/margin_record_speed_seek_bar_8dp"
-                android:max="20"
+                android:max="50"
                 android:minWidth="@dimen/min_width_record_seek_bar"
                 android:progress="5"
                 app:layout_constraintEnd_toStartOf="@+id/record_btn_increase_speed"
@@ -122,7 +123,7 @@
                 android:src="@drawable/ic_chevron_right_24dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toEndOf="@+id/recored_speed_seek_bar" />
+                app:layout_constraintStart_toEndOf="@+id/record_speed_seek_bar" />
 
         </android.support.constraint.ConstraintLayout>
 

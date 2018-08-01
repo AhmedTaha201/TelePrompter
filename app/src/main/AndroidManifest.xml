@@ -23,12 +23,14 @@
         <activity
             android:name=".EditActivity"
             android:parentActivityName=".MainActivity">
-        </activity>
 
+        </activity>
         <activity
             android:name=".VideoActivity"
             android:parentActivityName=".MainActivity">
+
         </activity>
+        <activity android:name=".SettingsActivity"></activity>
     </application>
 
 </manifest>

@@ -63,6 +63,7 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
     private boolean mShowDialog;
 
     String mFullContents;
+    String mFileName;
 
     @Nullable
     @Override
@@ -113,27 +114,28 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
         if (mStayInActivity) return;
         Intent recordIntent = new Intent(getContext().getApplicationContext(), VideoActivity.class);
         recordIntent.putExtra(VideoActivity.INTENT_EXTRA_FILE_CONTENTS, mFullContents);
+        recordIntent.putExtra(VideoActivity.INTENT_EXTRA_FILE_NAME, mFileName);
         startActivity(recordIntent);
 
     }
 
     private void saveCurrentFile() {
         //Insert the file into the database
-        final String title = et_title.getText().toString().trim();
+        mFileName = et_title.getText().toString().trim();
         mFullContents = et_contents.getText().toString().trim();
 
         //Check for empty string
-        if (TextUtils.isEmpty(title) || TextUtils.isEmpty(mFullContents)) {
-            showEmptyDialog(title);
+        if (TextUtils.isEmpty(mFileName) || TextUtils.isEmpty(mFullContents)) {
+            showEmptyDialog(mFileName);
             return;
         }
         String shortContents = mFullContents.substring(0, mFullContents.length() > 300 ? 300 : mFullContents.length());
-        final File newFile = new File(title, shortContents, new Date());
+        final File newFile = new File(mFileName, shortContents, new Date());
 
 
         final FileDatabase db = FileDatabase.getInstance(getActivity());
 
-        FileViewModelFactory factory = new FileViewModelFactory(db, title);
+        FileViewModelFactory factory = new FileViewModelFactory(db, mFileName);
         final FileViewModel fileViewModel = ViewModelProviders.of(this, factory)
                 .get(FileViewModel.class);
         fileViewModel.getmFile().observe(this, new Observer<File>() {
@@ -154,7 +156,7 @@ public class EditFragment extends Fragment implements EditActivity.onBackPressed
 
         //Save to the internal storage
         FileUtils.WriteFileTask writeFileTask = new FileUtils.WriteFileTask(getActivity());
-        writeFileTask.execute(title, mFullContents);
+        writeFileTask.execute(mFileName, mFullContents);
     }
 
     @Override

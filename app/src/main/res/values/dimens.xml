@@ -21,6 +21,9 @@
     <dimen name="record_timer_text_size">20sp</dimen>
     <dimen name="padding_record_contents">4dp</dimen>
     <dimen name="max_width_record_scroll_contetns">300dp</dimen>
+    <dimen name="padding_settings_fragment">8dp</dimen>
+    <dimen name="margin_top_settings_item">8dp</dimen>
+
 
     <integer name="recycler_item_count">2</integer>
 </resources>

@@ -3,8 +3,11 @@ package com.example.teleprompter;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
@@ -17,11 +20,13 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -33,6 +38,7 @@ import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.Chronometer;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,8 +46,12 @@ import com.example.teleprompter.customview.CustomScrollView;
 import com.example.teleprompter.utils.CameraUtils;
 import com.example.teleprompter.utils.FileUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 
 import butterknife.BindView;
@@ -49,18 +59,25 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import timber.log.Timber;
 
-public class VideoActivity extends AppCompatActivity implements CustomScrollView.OnScrollListener {
+/**
+ * The Whole camera implementation is based on this tutorial and the accompanying code
+ * https://www.youtube.com/watch?v=CuvVpsFc77w&list=PL9jCwTXYWjDIHNEGtsRdCTk79I9-95TbJ
+ */
+
+public class VideoActivity extends AppCompatActivity implements CustomScrollView.OnScrollListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static final int PERMISSION_REQUEST_CODE_CAMERA = 0;
     public static final int PERMISSION_REQUEST_CODE_EXT_STORAGE = 1;
     public static final int PERMISSION_REQUEST_CODE_RECORD_AUDIO = 2;
 
     public static final String INTENT_EXTRA_FILE_CONTENTS = "contents";
+    public static final String INTENT_EXTRA_FILE_NAME = "file_name";
+
+    public static final String BUNDLE_KEY_FILE_NAME = "bundle_file_name";
 
     boolean mScrollPlaying;
     public static final String SCROLL_Y_STRING = "scrollY";
-    public static final int SCROLL_SPEED = 400000;
-
+    public static final double SCROLL_SPEED_MULTIPLIER = 0.005;
     //Camera Device
     CameraDevice mCameraDevice;
     //Background thread
@@ -117,6 +134,8 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
 
     ObjectAnimator mAnimator;
 
+    String mFileName;
+
     //Timer
     @BindView(R.id.timer)
     Chronometer mTimer;
@@ -156,16 +175,19 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
     @BindView(R.id.record_btn_scroll_play)
     ImageView mScrollPlay;
 
+    @BindView(R.id.record_speed_seek_bar)
+    SeekBar mSeekBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video);
         ButterKnife.bind(this);
-
-        Intent intent = getIntent();
-        if (intent != null && intent.hasExtra(INTENT_EXTRA_FILE_CONTENTS)) {
-            mFileContents.setText(intent.getStringExtra(INTENT_EXTRA_FILE_CONTENTS));
+        Timber.plant(new Timber.DebugTree());
+        if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_KEY_FILE_NAME)) {
+            mFileName = savedInstanceState.getString(BUNDLE_KEY_FILE_NAME);
         }
+
 
         mScrollView.setOnScrollListener(this);
     }
@@ -173,6 +195,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
     @Override
     protected void onResume() {
         super.onResume();
+        PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this);
         startBackgroundThread();
         mMediaRecorder = new MediaRecorder();
         if (mTextureView.isAvailable()) {
@@ -181,13 +204,63 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
         } else {
             mTextureView.setSurfaceTextureListener(mTextureViewListener);
         }
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra(INTENT_EXTRA_FILE_CONTENTS) && intent.hasExtra(INTENT_EXTRA_FILE_NAME)) {
+            mFileContents.setText(intent.getStringExtra(INTENT_EXTRA_FILE_CONTENTS));
+            mFileName = intent.getStringExtra(INTENT_EXTRA_FILE_NAME);
+        } else {
+            new ReadInternalFileTask(this, mFileContents).execute(mFileName);
+        }
+
+
+        //Scroll contents Text color
+        mFileContents.setTextColor(Color.parseColor(preferences.getString(SettingsFragment.PREF_KEY_TEXT_COLOR,
+                getString(R.string.settings_text_color_default))));
+
+        //Scroll contents Text size
+        int textSize = preferences.getInt(SettingsFragment.PREF_KEY_TEXT_SIZE, 32);
+        mFileContents.setTextSize(textSize);
+
+        //Scroll contents scroll speed
+        int textSpeed = preferences.getInt(SettingsFragment.PREF_KEY_TEXT_SPEED, 5);
+        mSeekBar.setProgress(textSpeed);
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (progress < 3) progress = 3;
+                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(VideoActivity.this).edit();
+                editor.putInt(SettingsFragment.PREF_KEY_TEXT_SPEED, progress);
+                editor.apply();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
     }
 
     @Override
     protected void onPause() {
         closeCamera();
         stopBackgroundThread();
+        PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
         super.onPause();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(BUNDLE_KEY_FILE_NAME, mFileName);
     }
 
     @Override
@@ -266,6 +339,11 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
 
         }
 
+    }
+
+    @OnClick(R.id.record_btn_settings)
+    void openSettings() {
+        startActivity(new Intent(this, SettingsActivity.class));
     }
 
     //Helpers
@@ -561,8 +639,8 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
         final int totalHeight = mScrollView.getChildAt(0).getHeight();
         float currentY = mScrollView.getY();
         mAnimator = ObjectAnimator.ofInt(mScrollView, SCROLL_Y_STRING, (int) (totalHeight - currentY));
-
-        mAnimator.setDuration(SCROLL_SPEED);
+        float s = getScrollDuration();
+        mAnimator.setDuration((long) getScrollDuration());
         mAnimator.setInterpolator(new LinearInterpolator());
         mAnimator.addListener(new Animator.AnimatorListener() {
             @Override
@@ -594,6 +672,34 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
         mScrollView.setObjectAnimator(mAnimator);
     }
 
+    public float getScrollDuration() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        //The speed is a number between 3 and 50 changed by a progress bar
+        int scrollSpeed = preferences.getInt(SettingsFragment.PREF_KEY_TEXT_SPEED, 5);
+        Timber.i("Scroll Speed = %s", scrollSpeed);
+
+        float totalHeight = mScrollView.getChildAt(0).getHeight();
+        Timber.i("Total height = %s", totalHeight);
+
+        float modifiedSpeed = (float) (scrollSpeed * SCROLL_SPEED_MULTIPLIER);
+        Timber.i("Modified Speed = %s", modifiedSpeed);
+
+        //The duration taken by the whole text to scroll to the bottom
+        float totalDuration = totalHeight / modifiedSpeed;
+        Timber.i("Total duration = %s", totalDuration);
+
+        float currentY = mScrollView.getScrollY();
+        Timber.i("Current Y = %s", currentY);
+
+        float remainingY = totalHeight - currentY;
+        Timber.i("Remaining Y = %s", remainingY);
+
+        // To maintain constant scroll speed
+        //The duration taken by the remaining text(From the current Y position to the bottom) to scroll to the bottom
+        float finalDuration = totalDuration * remainingY / totalHeight;
+        Timber.i("Final Duration = %s", finalDuration);
+        return finalDuration;
+    }
 
     @Override
     public void onFlingStarted() {
@@ -618,6 +724,63 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
                 mAnimator.start();
             }
         }
+    }
+
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(SettingsFragment.PREF_KEY_TEXT_SPEED)) {
+            if (mAnimator != null) {
+                float s = getScrollDuration();
+                mAnimator.setDuration((long) getScrollDuration());
+            }
+        }
+
+    }
+
+    public static class ReadInternalFileTask extends AsyncTask<String, Void, String> {
+
+        private Context mContext;
+        TextView mFileContents;
+
+        public ReadInternalFileTask(Context mContext, TextView mFileContents) {
+            this.mContext = mContext;
+            this.mFileContents = mFileContents;
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String fileName = strings[0];
+
+            try {
+                FileInputStream inputStream = mContext.openFileInput(fileName);
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                StringBuilder builder = new StringBuilder();
+                String line = bufferedReader.readLine();
+
+                while (line != null) {
+                    builder.append(line).append("\n");
+                    line = bufferedReader.readLine();
+                }
+                return builder.toString();
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Timber.e("Failed to find the file with the name : %s", fileName);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Timber.e("Failed to read the file with the name : %s", fileName);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            mFileContents.setText(s);
+        }
+
     }
 
 }
