@@ -23,8 +23,6 @@ import android.widget.Toast;
 import com.example.teleprompter.customview.CustomFloatingActionButton;
 import com.example.teleprompter.database.File;
 import com.example.teleprompter.database.FileDatabase;
-import com.example.teleprompter.viewmodels.FileViewModel;
-import com.example.teleprompter.viewmodels.FileViewModelFactory;
 import com.example.teleprompter.viewmodels.MainViewModel;
 import com.example.teleprompter.widget.FilesWidgetProvider;
 import com.google.android.gms.ads.AdRequest;
@@ -125,43 +123,32 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 String fileName = (String) viewHolder.itemView.getTag();
-                deleteFile(fileName);
+                deleteFile(fileName, viewHolder.getAdapterPosition());
             }
         });
         itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
-    void deleteFile(final String fileName) {
-        //Get the file withe corresponding name to delete
+    void deleteFile(final String fileName, final int position) {
         final FileDatabase db = FileDatabase.getInstance(getActivity());
-
-        FileViewModelFactory factory = new FileViewModelFactory(db, fileName);
-        final FileViewModel fileViewModel = ViewModelProviders.of(getActivity(), factory)
-                .get(FileViewModel.class);
-        fileViewModel.getmFile().observe(this, new Observer<File>() {
+        //We got the file
+        //Deleting from the database
+        AppExecutors.getInstance().diskIo().execute(new Runnable() {
             @Override
-            public void onChanged(@Nullable final File file) {
-                fileViewModel.getmFile().removeObserver(this);
-                //We got the file
-
-                //Deleting from the database
-                AppExecutors.getInstance().diskIo().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        db.fileDao().deleteFile(file);
-                        Timber.i("The file with the name %s is deleted from the database", fileName);
-                    }
-                });
-
-                //Deleting from the disk
-                java.io.File textFile = new java.io.File(getActivity().getFilesDir(), fileName);
-                boolean deleted = textFile.delete();
-                if (deleted)
-                    //Todo -- Show a snackBar with an UNDO action button
-                    Toast.makeText(getActivity(), getString(R.string.main_delete_toast_msg, fileName), Toast.LENGTH_SHORT).show();
-                Timber.i("The file with the name %s is deleted from the storage", fileName);
+            public void run() {
+                db.fileDao().deleteFile(mFiles.get(position));
+                Timber.i("The file with the name %s is deleted from the database", fileName);
             }
         });
+
+
+        //Deleting from the disk
+        java.io.File textFile = new java.io.File(getActivity().getFilesDir(), fileName);
+        boolean deleted = textFile.delete();
+        if (deleted)
+            //Todo -- Show a snackBar with an UNDO action button
+            Toast.makeText(getActivity(), getString(R.string.main_delete_toast_msg, fileName), Toast.LENGTH_SHORT).show();
+        Timber.i("The file with the name %s is deleted from the storage", fileName);
 
     }
 
