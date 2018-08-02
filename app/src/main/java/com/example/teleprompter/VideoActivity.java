@@ -373,7 +373,6 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
     //Get the Id of the front camera
     private void setupCamera(int width, int height) {
         CameraManager cameraManager = (CameraManager) getSystemService(CAMERA_SERVICE);
-        configureTransform(width, height);
         try {
             if (cameraManager == null) return;
             for (String cameraId : cameraManager.getCameraIdList()) {
@@ -443,6 +442,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession session) {
                     try {
+                        configureTransform(mPreviewSize.getWidth(), mPreviewSize.getHeight());
                         session.setRepeatingRequest(mCaptureRequestBuilder.build(), null, mHandler);
                     } catch (CameraAccessException e) {
                         e.printStackTrace();
@@ -652,7 +652,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
             return;
         }
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
-        Matrix matrix = new Matrix();
+        final Matrix matrix = new Matrix();
         RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
         RectF bufferRect = new RectF(0, 0, mPreviewSize.getHeight(), mPreviewSize.getWidth());
         float centerX = viewRect.centerX();
@@ -668,7 +668,12 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
         } else if (Surface.ROTATION_180 == rotation) {
             matrix.postRotate(180, centerX, centerY);
         }
-        mTextureView.setTransform(matrix);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mTextureView.setTransform(matrix);
+            }
+        });
     }
 
     /* Animation Helpers */
