@@ -40,7 +40,9 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FileViewHold
     @Override
     public void onBindViewHolder(@NonNull FileViewHolder holder, int position) {
         File currentFile = mFilesList.get(position);
-        holder.fileName.setText(currentFile.getFileName());
+        String fileName = currentFile.getFileName();
+        holder.itemView.setTag(fileName);
+        holder.fileName.setText(fileName);
         holder.fileContents.setText(currentFile.getFileContents());
         holder.fileDate.setText(new SimpleDateFormat("dd/MM/yy kk:mm").format(currentFile.getDate()));
     }

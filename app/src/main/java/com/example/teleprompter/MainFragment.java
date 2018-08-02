@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,9 @@ import android.widget.Toast;
 
 import com.example.teleprompter.customview.CustomFloatingActionButton;
 import com.example.teleprompter.database.File;
+import com.example.teleprompter.database.FileDatabase;
+import com.example.teleprompter.viewmodels.FileViewModel;
+import com.example.teleprompter.viewmodels.FileViewModelFactory;
 import com.example.teleprompter.viewmodels.MainViewModel;
 import com.example.teleprompter.widget.FilesWidgetProvider;
 import com.google.android.gms.ads.AdRequest;
@@ -35,6 +39,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import droidninja.filepicker.FilePickerBuilder;
 import droidninja.filepicker.FilePickerConst;
+import timber.log.Timber;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -71,12 +76,14 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this, view);
+        Timber.plant(new Timber.DebugTree());
 
         mAdapter = new FilesAdapter(getActivity(), null, this);
         int spanCount = getActivity().getResources().getInteger(R.integer.recycler_item_count);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.setAdapter(mAdapter);
 
+        setupItemTouchHelper();
         setupMainViewModel();
         setupSheetFab();
 
@@ -107,6 +114,57 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
             Toast.makeText(getActivity(), R.string.permission_toast_text, Toast.LENGTH_SHORT).show();
         }
     }
+
+    void setupItemTouchHelper() {
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                String fileName = (String) viewHolder.itemView.getTag();
+                deleteFile(fileName);
+            }
+        });
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+    }
+
+    void deleteFile(final String fileName) {
+        //Get the file withe corresponding name to delete
+        final FileDatabase db = FileDatabase.getInstance(getActivity());
+
+        FileViewModelFactory factory = new FileViewModelFactory(db, fileName);
+        final FileViewModel fileViewModel = ViewModelProviders.of(getActivity(), factory)
+                .get(FileViewModel.class);
+        fileViewModel.getmFile().observe(this, new Observer<File>() {
+            @Override
+            public void onChanged(@Nullable final File file) {
+                fileViewModel.getmFile().removeObserver(this);
+                //We got the file
+
+                //Deleting from the database
+                AppExecutors.getInstance().diskIo().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        db.fileDao().deleteFile(file);
+                        Timber.i("The file with the name %s is deleted from the database", fileName);
+                    }
+                });
+
+                //Deleting from the disk
+                java.io.File textFile = new java.io.File(getActivity().getFilesDir(), fileName);
+                boolean deleted = textFile.delete();
+                if (deleted)
+                    //Todo -- Show a snackBar with an UNDO action button
+                    Toast.makeText(getActivity(), getString(R.string.main_delete_toast_msg, fileName), Toast.LENGTH_SHORT).show();
+                Timber.i("The file with the name %s is deleted from the storage", fileName);
+            }
+        });
+
+    }
+
 
     void setupMainViewModel() {
         MainViewModel mainViewModel = ViewModelProviders.of(getActivity())

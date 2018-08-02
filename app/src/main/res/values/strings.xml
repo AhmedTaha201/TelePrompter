@@ -52,5 +52,6 @@
     <string name="widget_list_empty_view_string">Click to create a new file</string>
     <string name="files_widget_title">Files List</string>
     <string name="a11y_cd_files_widget_add_file">Add a new file</string>
+    <string name="main_delete_toast_msg">%s is deleted</string>
 
 </resources>
