@@ -16,6 +16,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            ads:adSize="BANNER"
+            ads:adUnitId="ca-app-pub-3940256099942544/6300978111" />
+
         <com.example.teleprompter.customview.CustomFloatingActionButton
             android:id="@+id/fab_main_add_new"
             android:layout_width="wrap_content"
@@ -52,6 +61,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical">
+
                     <TextView
                         android:id="@+id/fab_entry_create_new"
                         style="@style/TextAppearance.AppCompat.Medium"

@@ -23,6 +23,8 @@ import com.example.teleprompter.customview.CustomFloatingActionButton;
 import com.example.teleprompter.database.File;
 import com.example.teleprompter.viewmodels.MainViewModel;
 import com.example.teleprompter.widget.FilesWidgetProvider;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.gordonwong.materialsheetfab.MaterialSheetFab;
 
 import java.util.ArrayList;
@@ -61,6 +63,9 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
     @BindView(R.id.dim_overlay)
     View overlay;
 
+    @BindView(R.id.adView)
+    AdView mAdView;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -74,6 +79,10 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
 
         setupMainViewModel();
         setupSheetFab();
+
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+
         return view;
     }
 
