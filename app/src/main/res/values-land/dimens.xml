@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="record_scroll_view_dimension">400dp</dimen>
+    <dimen name="min_width_record_seek_bar">400dp</dimen>
+</resources>

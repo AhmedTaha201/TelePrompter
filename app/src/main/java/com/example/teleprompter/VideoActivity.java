@@ -311,7 +311,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
             mTimer.setVisibility(View.GONE);
             scrollContents();
             mIsRecording = false;
-            mRecordButton.setImageResource(R.drawable.ic_videocam_green);
+            mRecordButton.setImageResource(R.drawable.ic_record_white);
             startPreview();
             mMediaRecorder.stop();
             mMediaRecorder.reset();
@@ -467,7 +467,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
                     && ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
                 mIsRecording = true;
-                mRecordButton.setImageResource(R.drawable.ic_videocam_red);
+                mRecordButton.setImageResource(R.drawable.ic_record_red);
                 try {
                     mVideoFilePath = FileUtils.createVideoFile(this);
                 } catch (IOException e) {
@@ -477,7 +477,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
             }
         } else {
             mIsRecording = true;
-            mRecordButton.setImageResource(R.drawable.ic_videocam_red);
+            mRecordButton.setImageResource(R.drawable.ic_record_red);
             try {
                 mVideoFilePath = FileUtils.createVideoFile(this);
             } catch (IOException e) {
@@ -591,7 +591,21 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
         }
         if (mIsRecording) {
             long elapsedMillis = SystemClock.elapsedRealtime() - mTimer.getBase();
+            mTimer.stop();
+            mTimer.setVisibility(View.GONE);
+            scrollContents();
+            mIsRecording = false;
+            mRecordButton.setImageResource(R.drawable.ic_record_white);
+            mMediaRecorder.stop();
+            mMediaRecorder.reset();
+
+            //Scan the file to appear in the device studio
+            Intent mediaScannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            mediaScannerIntent.setData(Uri.fromFile(new File(mVideoFilePath)));
+            sendBroadcast(mediaScannerIntent);
+
             logFirebaseVideoEvent(elapsedMillis);
+
         }
         if (mMediaRecorder != null) {
             mMediaRecorder.release();
@@ -627,8 +641,8 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
 
     /**
      * Configures the necessary {@link android.graphics.Matrix} transformation to `mTextureView`.
-     * This method should be called after the camera preview size is determined in
-     * setUpCameraOutputs and also the size of `mTextureView` is fixed.
+     * This method should be called after the camera preview size is determined
+     * and also the size of `mTextureView` is fixed.
      *
      * @param viewWidth  The width of `mTextureView`
      * @param viewHeight The height of `mTextureView`

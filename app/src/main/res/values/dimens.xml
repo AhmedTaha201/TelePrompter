@@ -18,7 +18,7 @@
     <dimen name="margin_bottom_record_bottom_play_layout">8dp</dimen>
     <dimen name="min_width_record_seek_bar">300dp</dimen>
     <dimen name="margin_end_record_timer">16dp</dimen>
-    <dimen name="record_timer_text_size">20sp</dimen>
+    <dimen name="record_timer_text_size">14sp</dimen>
     <dimen name="padding_record_contents">4dp</dimen>
     <dimen name="max_width_record_scroll_contetns">300dp</dimen>
     <dimen name="padding_settings_fragment">8dp</dimen>
@@ -27,6 +27,8 @@
     <dimen name="padding_files_widget_8dp">4dp</dimen>
     <dimen name="padding_files_widget_list_item">16dp</dimen>
     <dimen name="height_files_widget_list_divider">1dp</dimen>
+    <dimen name="record_btn_dimension">60dp</dimen>
+    <dimen name="record_scroll_view_dimension">300dp</dimen>
 
 
     <integer name="recycler_item_count">2</integer>

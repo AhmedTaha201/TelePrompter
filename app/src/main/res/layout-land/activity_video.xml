@@ -13,8 +13,8 @@
 
     <com.example.teleprompter.customview.CustomScrollView
         android:id="@+id/record_scrollView"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/record_scroll_view_dimension"
+        android:layout_width="@dimen/record_scroll_view_dimension"
+        android:layout_height="match_parent"
         android:verticalScrollbarPosition="left"
         app:layout_constraintStart_toStartOf="parent">
 
@@ -42,10 +42,10 @@
         android:nextFocusForward="@id/record_speed_seek_bar"
         android:nextFocusLeft="@color/record_scroll_contents_text"
         android:nextFocusRight="@id/record_speed_seek_bar"
+
         android:padding="@dimen/padding_iv_record_top_bar"
         android:src="@drawable/ic_edit_24dp"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/record_scrollView" />
+        app:layout_constraintRight_toRightOf="parent" />
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/bottom_bar"
@@ -84,9 +84,9 @@
             android:layout_marginBottom="8dp"
             android:layout_marginEnd="16dp"
             android:contentDescription="@string/a11y_cd_record_settings"
-            android:nextFocusForward="@id/record_btn_edit"
+            android:nextFocusForward="@id/tv_record_contents"
             android:nextFocusLeft="@id/record_btn_record_video"
-            android:nextFocusRight="@id/record_btn_edit"
+            android:nextFocusRight="@id/tv_record_contents"
             android:padding="@dimen/padding_iv_record_top_bar"
             android:src="@drawable/ic_settings_24dp"
             app:layout_constraintBottom_toBottomOf="parent"
