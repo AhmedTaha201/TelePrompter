@@ -23,6 +23,10 @@
     <dimen name="max_width_record_scroll_contetns">300dp</dimen>
     <dimen name="padding_settings_fragment">8dp</dimen>
     <dimen name="margin_top_settings_item">8dp</dimen>
+    <dimen name="widget_min_dimension">160dp</dimen>
+    <dimen name="padding_files_widget_8dp">4dp</dimen>
+    <dimen name="padding_files_widget_list_item">16dp</dimen>
+    <dimen name="height_files_widget_list_divider">1dp</dimen>
 
 
     <integer name="recycler_item_count">2</integer>

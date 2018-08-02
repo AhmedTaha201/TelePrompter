@@ -20,7 +20,6 @@ public abstract class FileDatabase extends RoomDatabase {
         if (sInstance == null) {
             synchronized (LOCK) {
                 sInstance = Room.databaseBuilder(context.getApplicationContext(), FileDatabase.class, DATABASE_NAME)
-                        .allowMainThreadQueries()
                         .build();
             }
         }

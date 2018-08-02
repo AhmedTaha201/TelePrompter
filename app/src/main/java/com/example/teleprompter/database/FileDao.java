@@ -16,6 +16,9 @@ public interface FileDao {
     @Query("SELECT * FROM files ORDER BY date")
     LiveData<List<File>> loadAllFiles();
 
+    @Query("SELECT * FROM files ORDER BY date")
+    List<File> loadAllFilesForWidgets();
+
     @Insert
     void insertFile(File file);
 

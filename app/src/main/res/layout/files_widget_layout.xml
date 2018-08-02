@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/files_widget_background_color"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/widget_recipe_name"
+            style="@style/TextAppearance.AppCompat.Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:padding="@dimen/padding_files_widget_8dp"
+            android:text="@string/files_widget_title"
+            android:textColor="@android:color/holo_blue_light" />
+
+        <ImageView
+            android:id="@+id/files_widget_add_file"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:contentDescription="@string/a11y_cd_files_widget_add_file"
+            android:padding="@dimen/padding_files_widget_8dp"
+            android:src="@drawable/ic_plus" />
+
+    </RelativeLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/widget_file_names_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@color/files_widget_list_divider"
+            android:dividerHeight="@dimen/height_files_widget_list_divider"
+            tools:listitem="@layout/files_widget_list_item">
+
+        </ListView>
+
+        <TextView
+            android:id="@+id/widget_list_empty_view"
+            style="@style/TextAppearance.AppCompat.Title"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/widget_list_empty_view_string"
+            android:textColor="@android:color/black" />
+
+    </FrameLayout>
+
+</LinearLayout>

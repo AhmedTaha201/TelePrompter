@@ -49,5 +49,8 @@
     <string name="settings_toast_min_speed">The minimum scroll speed is 3</string>
     <string name="settings_toast_max_text_size">The Maximum text size is 50</string>
     <string name="settings_toast_min_text_size">The minimum text size is 12</string>
+    <string name="widget_list_empty_view_string">Click to create a new file</string>
+    <string name="files_widget_title">Files List</string>
+    <string name="a11y_cd_files_widget_add_file">Add a new file</string>
 
 </resources>

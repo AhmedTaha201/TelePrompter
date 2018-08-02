@@ -1,8 +1,10 @@
 package com.example.teleprompter;
 
 import android.Manifest;
+import android.appwidget.AppWidgetManager;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -20,6 +22,7 @@ import android.widget.Toast;
 import com.example.teleprompter.customview.CustomFloatingActionButton;
 import com.example.teleprompter.database.File;
 import com.example.teleprompter.viewmodels.MainViewModel;
+import com.example.teleprompter.widget.FilesWidgetProvider;
 import com.gordonwong.materialsheetfab.MaterialSheetFab;
 
 import java.util.ArrayList;
@@ -105,6 +108,13 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
             public void onChanged(@Nullable List<File> files) {
                 mAdapter.setFilesList(files);
                 mFiles = files;
+
+                //Update app widgets
+                AppWidgetManager manager = AppWidgetManager.getInstance(getActivity());
+                int[] appWidgetIds = manager.getAppWidgetIds(new ComponentName(getActivity(), FilesWidgetProvider.class));
+                manager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_file_names_list);
+                FilesWidgetProvider.updateWidgets(getActivity(), manager, appWidgetIds);
+
             }
         });
     }

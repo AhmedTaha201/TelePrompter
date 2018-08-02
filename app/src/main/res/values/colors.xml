@@ -10,4 +10,6 @@
     <color name="record_bars_background">#73000000</color>
     <color name="record_timer_text_color">#FF0000</color>
     <color name="record_scroll_contents_text">#FFFFFF</color>
+    <color name="files_widget_background_color">#FFFFFF</color>
+    <color name="files_widget_list_divider">#c2b9b9</color>
 </resources>
