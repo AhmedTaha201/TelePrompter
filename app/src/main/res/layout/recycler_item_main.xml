@@ -19,6 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="@dimen/padding_main_tv_4dp"
+            android:textColor="@color/distinguished_text_color"
             tools:text="@tools:sample/full_names" />
 
         <TextView
@@ -29,6 +30,16 @@
             android:maxLines="6"
             android:padding="@dimen/padding_main_tv_4dp"
             tools:text="@tools:sample/lorem/random" />
+
+        <TextView
+            android:id="@+id/tv_main_file_date"
+            style="@style/Base.TextAppearance.AppCompat.Body1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:padding="4dp"
+            android:textColor="@color/distinguished_text_color"
+            tools:text="21/8/2018 21:05" />
     </LinearLayout>
 
 </android.support.v7.widget.CardView>

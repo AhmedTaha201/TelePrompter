@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.example.teleprompter.database.File;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import butterknife.BindView;
@@ -41,6 +42,7 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FileViewHold
         File currentFile = mFilesList.get(position);
         holder.fileName.setText(currentFile.getFileName());
         holder.fileContents.setText(currentFile.getFileContents());
+        holder.fileDate.setText(new SimpleDateFormat("dd/MM/yy kk:mm").format(currentFile.getDate()));
     }
 
     @Override
@@ -61,6 +63,9 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FileViewHold
 
         @BindView(R.id.tv_main_file_contents)
         TextView fileContents;
+
+        @BindView(R.id.tv_main_file_date)
+        TextView fileDate;
 
         public FileViewHolder(View itemView) {
             super(itemView);
