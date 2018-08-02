@@ -45,6 +45,7 @@ import android.widget.Toast;
 import com.example.teleprompter.customview.CustomScrollView;
 import com.example.teleprompter.utils.CameraUtils;
 import com.example.teleprompter.utils.FileUtils;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -62,6 +63,8 @@ import timber.log.Timber;
 /**
  * The Whole camera implementation is based on this tutorial and the accompanying code
  * https://www.youtube.com/watch?v=CuvVpsFc77w&list=PL9jCwTXYWjDIHNEGtsRdCTk79I9-95TbJ
+ * Elapsed chronometer time
+ * https://stackoverflow.com/questions/526524/android-get-time-of-chronometer-widget
  */
 
 public class VideoActivity extends AppCompatActivity implements CustomScrollView.OnScrollListener, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -78,6 +81,9 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
     boolean mScrollPlaying;
     public static final String SCROLL_Y_STRING = "scrollY";
     public static final double SCROLL_SPEED_MULTIPLIER = 0.005;
+
+    private FirebaseAnalytics mFirebaseAnalytics;
+
     //Camera Device
     CameraDevice mCameraDevice;
     //Background thread
@@ -135,6 +141,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
     ObjectAnimator mAnimator;
 
     String mFileName;
+    static String mFullText;
 
     //Timer
     @BindView(R.id.timer)
@@ -187,7 +194,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
         if (savedInstanceState != null && savedInstanceState.containsKey(BUNDLE_KEY_FILE_NAME)) {
             mFileName = savedInstanceState.getString(BUNDLE_KEY_FILE_NAME);
         }
-
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
         mScrollView.setOnScrollListener(this);
     }
@@ -209,7 +216,8 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
 
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra(INTENT_EXTRA_FILE_CONTENTS) && intent.hasExtra(INTENT_EXTRA_FILE_NAME)) {
-            mFileContents.setText(intent.getStringExtra(INTENT_EXTRA_FILE_CONTENTS));
+            mFullText = intent.getStringExtra(INTENT_EXTRA_FILE_CONTENTS);
+            mFileContents.setText(mFullText);
             mFileName = intent.getStringExtra(INTENT_EXTRA_FILE_NAME);
         } else {
             new ReadInternalFileTask(this, mFileContents).execute(mFileName);
@@ -298,6 +306,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
     @OnClick(R.id.record_btn_record_video)
     public void recordButtonTrigger() {
         if (mIsRecording) {
+            long elapsedMillis = SystemClock.elapsedRealtime() - mTimer.getBase();
             mTimer.stop();
             mTimer.setVisibility(View.GONE);
             scrollContents();
@@ -311,9 +320,21 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
             Intent mediaScannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
             mediaScannerIntent.setData(Uri.fromFile(new File(mVideoFilePath)));
             sendBroadcast(mediaScannerIntent);
+
+            logFirebaseVideoEvent(elapsedMillis);
+
         } else {
             startNewVideo();
         }
+    }
+
+    private void logFirebaseVideoEvent(long elapsedMillis) {
+        //Log the event
+        Bundle params = new Bundle();
+        params.putString("file_name", mFileName);
+        params.putInt("text_length", mFullText.length());
+        params.putLong("video_length_millis", elapsedMillis);
+        mFirebaseAnalytics.logEvent("new_file", params);
     }
 
     @OnClick(R.id.record_btn_scroll_play)
@@ -568,6 +589,10 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
             mCameraDevice.close();
             mCameraDevice = null;
         }
+        if (mIsRecording) {
+            long elapsedMillis = SystemClock.elapsedRealtime() - mTimer.getBase();
+            logFirebaseVideoEvent(elapsedMillis);
+        }
         if (mMediaRecorder != null) {
             mMediaRecorder.release();
             mMediaRecorder = null;
@@ -778,6 +803,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
+            mFullText = s;
             mFileContents.setText(s);
         }
 
