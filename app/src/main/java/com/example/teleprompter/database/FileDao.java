@@ -13,7 +13,7 @@ import java.util.List;
 @Dao
 public interface FileDao {
 
-    @Query("SELECT * FROM files ORDER BY date")
+    @Query("SELECT * FROM files ORDER BY date DESC")
     LiveData<List<File>> loadAllFiles();
 
     @Query("SELECT * FROM files ORDER BY date")
