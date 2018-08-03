@@ -10,6 +10,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
+    OnBackPressedListener mOnBackPressedListener;
+
     @BindView(R.id.main_toolbar)
     Toolbar toolbar;
 
@@ -22,5 +24,22 @@ public class MainActivity extends AppCompatActivity {
         MobileAds.initialize(this, "ca-app-pub-3940256099942544~3347511713");
     }
 
-    //Todo -- onBackPressed hides the fab sheet
+    @Override
+    public void onBackPressed() {
+        if (mOnBackPressedListener.isSheetVisible()) {
+            mOnBackPressedListener.onBackPressed();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    public void setOnBackPressedListener(OnBackPressedListener mOnBackPressedListener) {
+        this.mOnBackPressedListener = mOnBackPressedListener;
+    }
+
+    public interface OnBackPressedListener {
+        boolean isSheetVisible();
+
+        void onBackPressed();
+    }
 }

@@ -42,7 +42,7 @@ import timber.log.Timber;
 import static android.app.Activity.RESULT_OK;
 
 
-public class MainFragment extends Fragment implements FilesAdapter.ListItemOnClickListener {
+public class MainFragment extends Fragment implements FilesAdapter.ListItemOnClickListener, MainActivity.OnBackPressedListener {
 
     public static final String INTENT_EXTRA_FILE_NAME = "title_extra";
     public static final String INTENT_EXTRA_FILE_PATH = "path_extra";
@@ -88,6 +88,7 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
 
+        ((MainActivity) getActivity()).setOnBackPressedListener(this);
         return view;
     }
 
@@ -217,5 +218,15 @@ public class MainFragment extends Fragment implements FilesAdapter.ListItemOnCli
         Intent intent = new Intent(getActivity(), EditActivity.class);
         intent.putExtra(INTENT_EXTRA_FILE_NAME, mFiles.get(position).getFileName());
         startActivity(intent);
+    }
+
+    @Override
+    public boolean isSheetVisible() {
+        return materialSheetFab.isSheetVisible();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (materialSheetFab.isSheetVisible()) materialSheetFab.hideSheet();
     }
 }
