@@ -71,7 +71,6 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
 
     public static final int PERMISSION_REQUEST_CODE_CAMERA = 0;
     public static final int PERMISSION_REQUEST_CODE_EXT_STORAGE = 1;
-    public static final int PERMISSION_REQUEST_CODE_RECORD_AUDIO = 2;
 
     public static final String INTENT_EXTRA_FILE_CONTENTS = "contents";
     public static final String INTENT_EXTRA_FILE_NAME = "file_name";
@@ -307,7 +306,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
             long elapsedMillis = SystemClock.elapsedRealtime() - mTimer.getBase();
             mTimer.stop();
             mTimer.setVisibility(View.GONE);
-            scrollContents();
+            if (mScrollPlaying) scrollContents(); //Stop the scrolling if it`s running
             mIsRecording = false;
             mRecordButton.setImageResource(R.drawable.ic_record_white);
             startPreview();
@@ -669,7 +668,6 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
         final int totalHeight = mScrollView.getChildAt(0).getHeight();
         float currentY = mScrollView.getY();
         mAnimator = ObjectAnimator.ofInt(mScrollView, SCROLL_Y_STRING, (int) (totalHeight - currentY));
-        float s = getScrollDuration();
         mAnimator.setDuration((long) getScrollDuration());
         mAnimator.setInterpolator(new LinearInterpolator());
         mAnimator.addListener(new Animator.AnimatorListener() {
@@ -761,7 +759,6 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals(SettingsFragment.PREF_KEY_TEXT_SPEED)) {
             if (mAnimator != null) {
-                float s = getScrollDuration();
                 mAnimator.setDuration((long) getScrollDuration());
             }
         }
