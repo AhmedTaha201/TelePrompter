@@ -38,7 +38,7 @@
         android:id="@+id/fab_edit_record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
+        android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/margin_fab_main_16dp"
         android:src="@drawable/ic_play_arrow"
         app:fabSize="normal" />
