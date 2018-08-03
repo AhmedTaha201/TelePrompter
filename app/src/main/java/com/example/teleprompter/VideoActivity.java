@@ -287,18 +287,16 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == PERMISSION_REQUEST_CODE_CAMERA && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            Timber.i("Camera permission successfully granted");
-            openCamera();
+        if (requestCode == PERMISSION_REQUEST_CODE_CAMERA) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Timber.i("Camera permission successfully granted");
+            }
+            if (grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                Timber.i("Audio permission successfully granted");
+            }
         }
         if (requestCode == PERMISSION_REQUEST_CODE_EXT_STORAGE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Timber.i("External storage permission successfully granted");
-            startNewVideo();
-        }
-        if (requestCode == PERMISSION_REQUEST_CODE_RECORD_AUDIO && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            Timber.i("Audio permission successfully granted");
-            startNewVideo();
-
         }
     }
 
@@ -415,7 +413,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
                         Toast.makeText(this, R.string.record_permission_needed_toast, Toast.LENGTH_SHORT).show();
                     }
                     ActivityCompat.requestPermissions(this,
-                            new String[]{Manifest.permission.CAMERA},
+                            new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO},
                             PERMISSION_REQUEST_CODE_CAMERA);
                 }
             } else {
@@ -463,7 +461,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
     //Record new video
     public void startNewVideo() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestAudioAndStoragePermissions();
+            requestStoragePermissions();
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
                     && ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
                 mIsRecording = true;
@@ -489,7 +487,7 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
 
     }
 
-    private void requestAudioAndStoragePermissions() {
+    private void requestStoragePermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -502,18 +500,6 @@ public class VideoActivity extends AppCompatActivity implements CustomScrollView
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         PERMISSION_REQUEST_CODE_EXT_STORAGE);
             }
-
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-                    != PackageManager.PERMISSION_GRANTED) {
-
-                if (shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO)) {
-                    Toast.makeText(this, "The Audio permission is needed to record audio", Toast.LENGTH_SHORT).show();
-                }
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.RECORD_AUDIO},
-                        PERMISSION_REQUEST_CODE_RECORD_AUDIO);
-            }
-
         }
     }
 
